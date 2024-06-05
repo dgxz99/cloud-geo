@@ -1,0 +1,219 @@
+import io
+import json
+import mimetypes
+import re
+import sys
+import processing
+from qgis.core import *
+from processing.core.Processing import Processing
+from algorithm_init.alg_wps2.algorithm import *
+
+with open('./output_map_rule.json', 'r', encoding='utf8') as f:
+	output_map = json.load(f)
+
+
+def get_algorithm_help(alg):
+	"""
+	从QGIS中获取算子帮助信息
+	Args:
+		alg: 算子对象
+	Returns:
+		算子的描述信息
+	"""
+	try:
+		buffer = io.StringIO()
+		sys.stdout = buffer
+		processing.algorithmHelp(alg.id())
+		alg_help = buffer.getvalue()
+		return alg_help
+	finally:
+		sys.stdout = sys.__stdout__
+
+
+def process_algorithm_info(alg_info):
+	"""
+	将算子描述信息转为json格式
+	Args:
+		alg_info: 算子的描述信息
+	Returns:
+		算子json格式的描述信息
+	"""
+	# 设置分隔符
+	split_flag = "----------------\nInput parameters\n----------------"
+	# 存储算子的字典
+	alg_dict = {}
+
+	# 将算子的描述信息分为两部分：[Title、Abstract、Identifier]
+	alg_description_info = alg_info.split(split_flag)
+
+	# 处理[Title、Abstract、Identifier]
+	title_string = re.sub(r"\).*? \(", "*****", alg_description_info[0])
+	title_list = title_string.split(")\n\n")
+	alg_dict["Title"] = title_list[0].split("(")[0].strip()
+
+	if "*****" in title_list[0]:
+		identifier = title_list[0].split("*****")[1].strip()
+	else:
+		identifier = title_list[0].split("(")[1].strip()
+	alg_dict["Abstract"] = alg_description_info[0].split(')\n\n', 1)[1].replace("\n", "")
+	alg_dict["Identifier"] = identifier
+
+	# 添加默认值信息和是否必要参数
+
+	# 创建对应的算子对象
+	alg = QgsApplication.processingRegistry().createAlgorithmById(alg_dict.get("Identifier"))
+
+	alg_dict["Inputs"] = []
+	# 获取算子的输入参数
+	input_parameters = alg.parameterDefinitions()
+	# 添加输入参数信息并添加默认值和是否必要参数
+	for param in input_parameters:
+		input_param_dict = {
+			"Title": param.name(),
+			"Abstract": param.description(),
+			"Identifier": param.name(),
+			"Parameter type": type(param).__name__,
+			"default_value": '' if param.defaultValue() is None else str(param.defaultValue()),
+			"min_occurs": 0,
+			"max_occurs": 1
+		}
+
+		if type(param).__name__ == "QgsProcessingParameterEnum":
+			input_param_dict["Available values"] = [{str(index): value} for index, value in enumerate(param.options())]
+
+		# 参数为空的情况下，判断是否为可选参数
+		if not param.defaultValue() and param.defaultValue() != 0:
+			flag = re.search(r'optional=(\w+)', param.asPythonString())
+			if not flag:
+				input_param_dict["min_occurs"] = 1  # 不是可选参数
+
+		if param.type() == 'multilayer':
+			input_param_dict["max_occurs"] = 10  # todo:考虑到内存原因，仅设置为10
+
+		# OUTPUT参数不需要用户输入，系统指定，最后需要返回该URL
+		if 'OUTPUT' in param.name():
+			input_param_dict["min_occurs"] = 0
+
+		# 保存算子支持的文件格式
+		try:
+			file_type_str = param.createFileFilter()
+			all_supported_files_match = re.search(r"All supported files(.*?);;", file_type_str)
+			if all_supported_files_match:
+				extensions = re.findall(r"\*(.\w+)", all_supported_files_match.group(0))
+			else:
+				extensions = re.findall(r"\*(.\w+)", file_type_str)
+
+			input_param_dict["wps_type"] = "ComplexInput"
+			unique_mime_types = set()  # 集合去重
+			mimetypes.add_type("x-world/x-vrt", ".vrt")
+			for ext in extensions:
+				mime_type, _ = mimetypes.guess_type(f'example{ext}')
+				if mime_type:
+					unique_mime_types.add(mime_type)
+			input_param_dict["supported_formats"] = list(unique_mime_types)
+		except:
+			input_param_dict["wps_type"] = "LiteralInput"
+			input_param_dict["data_type"] = "string"
+
+		alg_dict["Inputs"].append(input_param_dict)
+
+	# 获取算子的输出参数
+	output_parameters = alg.outputDefinitions()
+	alg_dict["Outputs"] = []
+
+	for param in output_parameters:
+		output_param_dict = {
+			"Title": param.name(),
+			"Abstract": param.description(),
+			"Identifier": param.name(),
+			"Parameter type": type(param).__name__,
+			"wps_type": output_map.get(type(param).__name__).get("wps_type"),
+		}
+		if output_param_dict["wps_type"] == 'LiteralOutput':
+			output_param_dict["data_type"] = output_map.get(type(param).__name__).get("data_type")
+		elif output_param_dict["wps_type"] == 'ComplexOutput':
+			output_param_dict["supported_formats"] = output_map.get(type(param).__name__).get("supported_formats")
+		alg_dict["Outputs"].append(output_param_dict)
+
+	return alg_dict
+
+
+def convert_wps(alg_dict):
+	"""
+	将算子转为符合WPS规范类型
+	Args:
+		alg_dict: 从文本信息中提取的算子字典
+	Returns:
+		符合WPS规范的算子描述信息
+	"""
+	title = alg_dict.get("Title")
+	identifier = alg_dict.get("Identifier")
+	abstract = alg_dict.get("Abstract")
+	inputs = alg_dict.get("Inputs")
+	outputs = alg_dict.get("Outputs")
+
+	input_list = parameters_list(inputs)
+	output_list = parameters_list(outputs)
+
+	algorithm_wps = AlgorithmWPS(title=title, identifier=identifier, abstract=abstract, inputs=input_list, outputs=output_list)
+	return algorithm_wps.to_dict()
+
+
+def parameters_list(parameters):
+	"""
+	将参数根据映射规则从QGIS类型转换WPS类型
+	Args:
+		parameters: 参数列表：输入参数列表、输出参数列表
+	Returns:
+		符合WPS规范的参数列表
+	"""
+	parameter_list = []
+	if len(parameters) != 0:
+		for param in parameters:
+			param_title = param.get("Title")
+			param_abstract = param.get("Abstract")
+			param_identifier = param.get("Identifier")
+			available_values = param.get("Available values")
+			default_value = param.get("default_value")
+			min_occurs = param.get("min_occurs") if param.get("min_occurs") is not None else 1
+			max_occurs = param.get("max_occurs") if param.get("max_occurs") is not None else 1
+			wps_type = param.get("wps_type")
+			data_type = param.get("data_type")
+			supported_formats = param.get("supported_formats")
+
+			param_data = None
+			if wps_type in ["LiteralInput", "LiteralOutput"]:
+				literal_data_domain = LiteralData.LiteralDataDomain(
+					data_type=data_type, allowed_values=available_values, default_value=default_value, default=True
+				)
+				param_data = LiteralData(
+					title=param_title, abstract=param_abstract, identifier=param_identifier,
+					literal_data_domains=[literal_data_domain], min_occurs=min_occurs, max_occurs=max_occurs
+				)
+			elif wps_type in ["ComplexInput", "ComplexOutput"]:
+				format_list = [Format(mime_type=item) for item in supported_formats]
+				param_data = ComplexData(
+					title=param_title, abstract=param_abstract, identifier=param_identifier,
+					supported_format=format_list, min_occurs=min_occurs, max_occurs=max_occurs
+				)
+			elif wps_type in ["BoundingBoxInput", "BoundingBoxOutput"]:  # todo: supported_crs这个是不能为空的，但目前并未遇到有这种参数类型
+				param_data = BoundingBoxData(
+					title=param_title, abstract=param_abstract, identifier=param_identifier, supported_crs=[], min_occurs=min_occurs, max_occurs=max_occurs
+				)
+			parameter_list.append(param_data)
+	return parameter_list
+
+
+if __name__ == '__main__':
+	# 初始化QGIS算子，保证能够正常调用
+	QgsApplication.setPrefixPath(r"D:\GIS\QGIS", True)
+	qgs = QgsApplication([], False)
+	qgs.initQgis()
+	Processing().initialize()
+
+	# 获取算子对象
+	algorithm = qgs.processingRegistry().createAlgorithmById("gdal:colorrelief")
+	algorithm_help = get_algorithm_help(algorithm)
+	info = process_algorithm_info(algorithm_help)
+	print(info)
+	print(convert_wps(info))

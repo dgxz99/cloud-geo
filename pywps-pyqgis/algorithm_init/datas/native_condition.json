@@ -1,0 +1,1 @@
+{"Title": "Conditional branch", "Abstract": "Adds a conditional branch into a model, allowing parts of the model to be selectively executed.This algorithm adds a conditional branch into a model, allowing parts of the model to be executed based on the result of an expression evaluation.", "Identifier": "native:condition", "Keywords": [], "Metadata": [], "Input": [], "Output": []}

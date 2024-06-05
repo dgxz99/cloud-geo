@@ -17,3 +17,15 @@
 /dockerfile/**/*.tar
 /dockerfile/**/*.tar.xz
 /dockerfile/**/*.jar
+
+# log
+/**/logs/**
+
+# test test_data
+/**/static/data/**
+/**/workdir/**
+/**/outputs/**
+/**/tests/
+
+# backup
+/**/backup/
