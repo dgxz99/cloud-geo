@@ -1,0 +1,19 @@
+# Maven
+/**/target/
+
+# idea
+/**/.idea/
+/**/*.iml
+
+# Vite
+/**/node_modules/
+/**/dist/
+
+# draw.io
+/**/.$*.bkp
+/**/.$*.dtmp
+
+# Docker
+/dockerfile/**/*.tar
+/dockerfile/**/*.tar.xz
+/dockerfile/**/*.jar

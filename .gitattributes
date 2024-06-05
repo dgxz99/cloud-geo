@@ -1,0 +1,3 @@
+# 设定全部Shell脚本文件为文本文件，并在检出时统一使用LF换行符
+*.sh text eol=lf
+*.fish text eol=lf
