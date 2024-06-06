@@ -20,6 +20,6 @@ spring:
           enabled: true
       routes:
         - id: "path"
-          uri: "lb://executor"
+          uri: "lb://PyWPS"
           predicates:
-            - "Path=/api/executor/**"
+            - "Path=/**"
