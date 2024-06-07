@@ -1,7 +1,7 @@
 import json
 import processing
 from qgis.core import *
-from mongo import MongoDB
+from dao.mongo import MongoDB
 from process_alg_wps import get_algorithm_help, process_algorithm_info, convert_wps
 
 if __name__ == '__main__':
@@ -28,7 +28,7 @@ if __name__ == '__main__':
 			break
 
 		# 保存数据到文件
-		with open("./datas/{}.json".format(alg_wps.get("Identifier").replace(":", "_")), "w", encoding="utf-8") as file:
+		with open("./json_datas/{}.json".format(alg_wps.get("Identifier").replace(":", "_")), "w", encoding="utf-8") as file:
 			try:
 				json.dump(alg_wps, file)
 			except Exception:

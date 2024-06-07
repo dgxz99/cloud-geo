@@ -1,7 +1,7 @@
 import os
 from qgis.core import QgsVectorFileWriter, QgsProject
-from processes.strategy.OutputHandlerParams import OutputHandlerParams
-from processes.strategy.OutputHandlerStrategy import OutputHandlerStrategy
+from src.processes import OutputHandlerParams
+from src.processes.strategy.OutputHandlerStrategy import OutputHandlerStrategy
 
 
 class VectorMemoryOutputHandlerStrategy(OutputHandlerStrategy):

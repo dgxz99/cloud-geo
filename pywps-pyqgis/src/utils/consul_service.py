@@ -2,7 +2,8 @@ import configparser
 import os
 from consul import Consul
 
-config_path = os.path.join(os.path.dirname(__file__), 'pywps.cfg')
+
+config_path = os.path.join(os.getcwd(), 'pywps.cfg')
 config = configparser.ConfigParser()
 config.read(config_path)
 

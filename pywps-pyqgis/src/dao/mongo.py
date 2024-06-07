@@ -1,12 +1,8 @@
-import os
-import configparser
-
+from context.config import get_config
 from pymongo import MongoClient, errors
 from typing import List, Dict
 
-config_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'pywps.cfg')
-config = configparser.ConfigParser()
-config.read(config_path)
+config = get_config()
 
 
 class MongoDB:

@@ -6,9 +6,8 @@ import sys
 import processing
 from qgis.core import *
 from processing.core.Processing import Processing
-from algorithm_init.alg_wps2.algorithm import *
 
-with open('./output_map_rule.json', 'r', encoding='utf8') as f:
+with open('../../output_map_rule.json', 'r', encoding='utf8') as f:
 	output_map = json.load(f)
 
 

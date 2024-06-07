@@ -1,6 +1,6 @@
 from processes.QGISProcess import QGISProcess
 from pywps.validator.mode import MODE
-from algorithm_init.mongo import MongoDB
+from dao.mongo import MongoDB
 from pywps import LiteralInput, LiteralOutput, ComplexInput, ComplexOutput, Format, BoundingBoxOutput, BoundingBoxInput
 
 

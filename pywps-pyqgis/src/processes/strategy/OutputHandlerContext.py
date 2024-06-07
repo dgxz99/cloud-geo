@@ -1,7 +1,7 @@
 import os
 
 from processes.strategy.OutputHandlerParams import OutputHandlerParams
-from processes.strategy.TextOutputHandlerStratege import TextOutputHandlerStrategy
+from processes.strategy.TextOutputHandlerStrategy import TextOutputHandlerStrategy
 from processes.strategy.FileOutputHandlerStrategy import FileOutputHandlerStrategy
 from processes.strategy.DirectoryOutputHandlerStrategy import DirectoryOutputHandlerStrategy
 
