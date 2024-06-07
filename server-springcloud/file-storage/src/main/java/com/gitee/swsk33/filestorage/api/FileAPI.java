@@ -4,6 +4,7 @@ import com.gitee.swsk33.entity.model.Result;
 import com.gitee.swsk33.filestorage.service.FileService;
 import io.github.swsk33.fileliftcore.model.BinaryContent;
 import io.github.swsk33.fileliftcore.model.file.MinioFile;
+import io.github.swsk33.fileliftcore.model.file.UploadFile;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +22,7 @@ public class FileAPI {
 	private FileService fileService;
 
 	@PutMapping("/upload")
-	public Result<String> upload(@RequestParam MultipartFile file) {
+	public Result<UploadFile> upload(@RequestParam MultipartFile file) {
 		return fileService.uploadFile(file);
 	}
 
@@ -35,9 +36,9 @@ public class FileAPI {
 		return fileService.getFileData(id);
 	}
 
-	@GetMapping("/retrieve/{id}")
-	public ResponseEntity<byte[]> download(@PathVariable String id) {
-		Result<BinaryContent> result = fileService.downloadFile(id);
+	@GetMapping("/retrieve/{name}")
+	public ResponseEntity<byte[]> download(@PathVariable String name) {
+		Result<BinaryContent> result = fileService.downloadFile(name);
 		if (!result.isSuccess()) {
 			return ResponseEntity.notFound().build();
 		}

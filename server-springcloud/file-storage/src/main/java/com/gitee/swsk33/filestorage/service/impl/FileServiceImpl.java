@@ -18,12 +18,12 @@ public class FileServiceImpl implements FileService {
 	private UploadFileService uploadFileService;
 
 	@Override
-	public Result<String> uploadFile(MultipartFile file) {
+	public Result<UploadFile> uploadFile(MultipartFile file) {
 		FileResult<UploadFile> result = uploadFileService.upload(file);
 		if (!result.isSuccess()) {
 			return Result.resultFailed(result.getMessage());
 		}
-		return Result.resultSuccess("上传文件完成！", result.getData().getName());
+		return Result.resultSuccess("上传文件完成！", result.getData());
 	}
 
 	@Override
@@ -42,8 +42,8 @@ public class FileServiceImpl implements FileService {
 	}
 
 	@Override
-	public Result<BinaryContent> downloadFile(String id) {
-		FileResult<BinaryContent> result = uploadFileService.downloadFileByMainName(id);
+	public Result<BinaryContent> downloadFile(String name) {
+		FileResult<BinaryContent> result = uploadFileService.downloadFileByFullName(name);
 		if (!result.isSuccess()) {
 			return Result.resultFailed(result.getMessage());
 		}

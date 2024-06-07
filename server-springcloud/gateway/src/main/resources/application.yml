@@ -25,10 +25,14 @@ spring:
         locator:
           enabled: true
       routes:
-        - id: "path"
+        # PyWPS服务
+        - id: "py-wps"
           uri: "lb://py-wps"
           predicates:
             - "Path=/api/wps/**"
+          filters:
+            - RewritePath=/api/wps/(?<remaining>.*), /${remaining}
+        # 分布式文件服务
         - id: "file-upload"
           uri: "lb://wps-file-storage"
           predicates:
