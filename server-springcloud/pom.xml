@@ -16,6 +16,8 @@
 
 	<modules>
 		<module>gateway</module>
+		<module>file-storage</module>
+		<module>entity</module>
 	</modules>
 
 	<properties>
@@ -24,6 +26,7 @@
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<spring-cloud.version>2023.0.2</spring-cloud.version>
+		<wps-cloud-compute.version>1.0.0</wps-cloud-compute.version>
 		<skipTests>true</skipTests>
 	</properties>
 
@@ -43,6 +46,13 @@
 				<version>${spring-cloud.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
+			</dependency>
+
+			<!-- 相互引用的模块 -->
+			<dependency>
+				<groupId>com.gitee.swsk33</groupId>
+				<artifactId>entity</artifactId>
+				<version>${wps-cloud-compute.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

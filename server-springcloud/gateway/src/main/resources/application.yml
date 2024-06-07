@@ -3,7 +3,13 @@ server:
 
 spring:
   application:
-    name: "gateway"
+    name: "wps-gateway"
+  codec:
+    max-in-memory-size: 1024MB
+  servlet:
+    multipart:
+      max-file-size: 1024MB
+      max-request-size: 1024MB
   cloud:
     consul:
       host: "202.114.148.161"
@@ -20,6 +26,10 @@ spring:
           enabled: true
       routes:
         - id: "path"
-          uri: "lb://PyWPS"
+          uri: "lb://py-wps"
           predicates:
-            - "Path=/**"
+            - "Path=/api/wps/**"
+        - id: "file-upload"
+          uri: "lb://wps-file-storage"
+          predicates:
+            - "Path=/api/file/**"

@@ -6,19 +6,36 @@
 		<artifactId>wps-cloud-demo</artifactId>
 		<version>1.0.0</version>
 	</parent>
-	<artifactId>gateway</artifactId>
-	<name>Gateway</name>
-	<description>网关和负载均衡</description>
+	<artifactId>file-storage</artifactId>
+	<name>File Storage</name>
+	<description>提供分布式文件存取支持</description>
 
 	<dependencies>
 		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-gateway</artifactId>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-consul-discovery</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.gitee.swsk33</groupId>
+			<artifactId>entity</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>io.github.swsk33</groupId>
+			<artifactId>file-lift-spring-boot-starter</artifactId>
+			<version>1.2.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>io.minio</groupId>
+			<artifactId>minio</artifactId>
+			<version>8.5.10</version>
 		</dependency>
 	</dependencies>
 
