@@ -6,6 +6,8 @@ import io.github.swsk33.fileliftcore.model.BinaryContent;
 import io.github.swsk33.fileliftcore.model.file.MinioFile;
 import io.github.swsk33.fileliftcore.model.file.UploadFile;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -42,8 +44,16 @@ public class FileAPI {
 		if (!result.isSuccess()) {
 			return ResponseEntity.notFound().build();
 		}
+		// 获取内容
 		BinaryContent content = result.getData();
-		return ResponseEntity.ok().contentType(MediaType.parseMediaType(content.getContentType())).body(content.getByteAndClose());
+		// 设定响应头
+		HttpHeaders headers = new HttpHeaders();
+		// 设定MediaType类型
+		headers.setContentType(MediaType.parseMediaType(content.getContentType()));
+		// 设定Content-Disposition头，告诉浏览器下载的文件名称
+		headers.setContentDisposition(ContentDisposition.builder("attachment").filename(name).build());
+		// 返回响应
+		return ResponseEntity.ok().headers(headers).body(content.getByteAndClose());
 	}
 
 }
