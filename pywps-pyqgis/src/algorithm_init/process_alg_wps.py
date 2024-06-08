@@ -7,6 +7,8 @@ import processing
 from qgis.core import *
 from processing.core.Processing import Processing
 
+from algorithm_init.alg_wps2.algorithm import AlgorithmWPS, LiteralData, BoundingBoxData, ComplexData, Format
+
 with open('../../output_map_rule.json', 'r', encoding='utf8') as f:
 	output_map = json.load(f)
 
@@ -102,14 +104,18 @@ def process_algorithm_info(alg_info):
 			else:
 				extensions = re.findall(r"\*(.\w+)", file_type_str)
 
-			input_param_dict["wps_type"] = "ComplexInput"
 			unique_mime_types = set()  # 集合去重
 			mimetypes.add_type("x-world/x-vrt", ".vrt")
 			for ext in extensions:
 				mime_type, _ = mimetypes.guess_type(f'example{ext}')
 				if mime_type:
 					unique_mime_types.add(mime_type)
-			input_param_dict["supported_formats"] = list(unique_mime_types)
+			if unique_mime_types:
+				input_param_dict["wps_type"] = "ComplexInput"
+				input_param_dict["supported_formats"] = list(unique_mime_types)
+			else:
+				input_param_dict["wps_type"] = "LiteralInput"
+				input_param_dict["data_type"] = "string"
 		except:
 			input_param_dict["wps_type"] = "LiteralInput"
 			input_param_dict["data_type"] = "string"
@@ -211,7 +217,7 @@ if __name__ == '__main__':
 	Processing().initialize()
 
 	# 获取算子对象
-	algorithm = qgs.processingRegistry().createAlgorithmById("gdal:colorrelief")
+	algorithm = qgs.processingRegistry().createAlgorithmById("gdal:gdal2tiles")
 	algorithm_help = get_algorithm_help(algorithm)
 	info = process_algorithm_info(algorithm_help)
 	print(info)

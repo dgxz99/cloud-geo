@@ -1,5 +1,4 @@
 import json
-import os
 import random
 import flask
 
@@ -11,13 +10,13 @@ from processes.QGISProFactory import QGISProcFactory
 # 算子初始化
 processes = QGISProcFactory().init_algorithms()
 
-# For the process list on the home page
+# 在home页面查看process
 process_descriptor = {}
 for process in processes:
 	abstract = process.abstract
 	process_descriptor[process.identifier] = abstract
 
-# This is, how you start PyWPS instance
+# PyWPS service实例
 service = Service(processes, ['pywps.cfg'])
 
 pywps_blue = flask.Blueprint('pywps', __name__)
@@ -33,36 +32,6 @@ def hello():
 @pywps_blue.route('/<base_url>', methods=['GET', 'POST'])
 def wps_handle(base_url):
 	return service
-
-
-@pywps_blue.route('/outputs/' + '<path:filename>')
-def outputfile(filename):
-	target_file = os.path.join('outputs', filename)
-	if os.path.isfile(target_file):
-		file_ext = os.path.splitext(target_file)[1]
-		if 'xml' in file_ext:
-			mime_type = 'text/xml'
-		else:
-			mime_type = 'pywps_bluelication/octet-stream'
-		# 设置响应头，告诉浏览器要下载文件，且适合下载大文件
-		response = flask.send_file(target_file, mimetype=mime_type)
-		response.headers["Content-Disposition"] = f"attachment; filename={filename}"
-		print(f'\033[94m{filename}下载成功！\033[0m')
-		return response
-	else:
-		flask.abort(404)
-
-
-# @pywps_blue.route('/static/' + '<path:filename>')
-def static_file(filename):
-	target_file = os.path.join('static', filename)
-	if os.path.isfile(target_file):
-		with open(target_file, mode='rb') as f:
-			file_bytes = f.read()
-		mime_type = None
-		return flask.Response(file_bytes, content_type=mime_type)
-	else:
-		flask.abort(404)
 
 
 @pywps_blue.route('/processes/<path:identifier>', methods=['GET'])

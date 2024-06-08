@@ -1,14 +1,17 @@
 import configparser
 import os
 
-config = None
-
 
 def get_config():
-	global config
-	if config == None:
+	"""
+	获取配置文件对象
+	Returns:
+		配置文件对象
+	"""
+	if not hasattr(get_config, "config"):
 		config_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'pywps.cfg')
 		config = configparser.ConfigParser()
 		config.read(config_path)
-		print("config init!")
-	return config
+		get_config.config = config
+		print("Config initialized!")
+	return get_config.config

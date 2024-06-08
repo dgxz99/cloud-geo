@@ -45,7 +45,7 @@ class QGISProcess(Process):
 
 		temp_dir = self.workdir
 		output_dir = pywps.configuration.get_config_value("server", "outputpath")
-		output_url = pywps.configuration.get_config_value("server", "outputurl")
+		output_url = pywps.configuration.get_config_value("file", "file_server_url")
 		output_file_name = None
 
 		try:

@@ -1,6 +1,9 @@
 import os
 import zipfile
 from abc import ABC, abstractmethod
+
+import requests
+
 from processes.strategy.OutputHandlerParams import OutputHandlerParams
 
 
@@ -28,3 +31,14 @@ class OutputHandlerStrategy(ABC):
 					rel_path = os.path.relpath(str(file_path), folder_path)
 					# 将文件添加到压缩文件中
 					zipf.write(str(file_path), rel_path)
+
+	@staticmethod
+	def upload_file(url, file_path):
+		upload_url = url + '/upload'
+		with open(file_path, 'rb') as f:
+			response = requests.put(upload_url, files={'file': f})
+		response.raise_for_status()
+		data = response.json()["data"]
+		output_file_name = data["name"]
+		output_file_ext = data["format"]
+		return output_file_name + '.' + output_file_ext

@@ -28,7 +28,7 @@ if __name__ == '__main__':
 			break
 
 		# 保存数据到文件
-		with open("./json_datas/{}.json".format(alg_wps.get("Identifier").replace(":", "_")), "w", encoding="utf-8") as file:
+		with open("../../json_datas/{}.json".format(alg_wps.get("Identifier").replace(":", "_")), "w", encoding="utf-8") as file:
 			try:
 				json.dump(alg_wps, file)
 			except Exception:
