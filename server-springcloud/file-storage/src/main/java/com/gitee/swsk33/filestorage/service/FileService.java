@@ -22,6 +22,14 @@ public interface FileService {
 	Result<UploadFile> uploadFile(MultipartFile file);
 
 	/**
+	 * 上传文件并指定文件名
+	 * @param file 上传的文件对象
+	 * @param name 指定上传后的文件名，不包括扩展名
+	 * @return 结果对象，包含已上传文件的信息
+	 */
+	Result<UploadFile> uploadFileForceName(MultipartFile file, String name);
+
+	/**
 	 * 删除文件
 	 *
 	 * @param id 文件id

@@ -28,6 +28,11 @@ public class FileAPI {
 		return fileService.uploadFile(file);
 	}
 
+	@PutMapping("/upload-force-name/{name}")
+	public Result<UploadFile> uploadForceName(@RequestParam MultipartFile file, @PathVariable String name) {
+		return fileService.uploadFileForceName(file, name);
+	}
+
 	@DeleteMapping("/delete/{id}")
 	public Result<Void> delete(@PathVariable String id) {
 		return fileService.deleteFile(id);
@@ -44,15 +49,10 @@ public class FileAPI {
 		if (!result.isSuccess()) {
 			return ResponseEntity.notFound().build();
 		}
-		// 获取内容
 		BinaryContent content = result.getData();
-		// 设定响应头
 		HttpHeaders headers = new HttpHeaders();
-		// 设定MediaType类型
 		headers.setContentType(MediaType.parseMediaType(content.getContentType()));
-		// 设定Content-Disposition头，告诉浏览器下载的文件名称
 		headers.setContentDisposition(ContentDisposition.builder("attachment").filename(name).build());
-		// 返回响应
 		return ResponseEntity.ok().headers(headers).body(content.getByteAndClose());
 	}
 

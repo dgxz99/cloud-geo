@@ -27,6 +27,15 @@ public class FileServiceImpl implements FileService {
 	}
 
 	@Override
+	public Result<UploadFile> uploadFileForceName(MultipartFile file, String name) {
+		FileResult<UploadFile> result = uploadFileService.uploadForceName(file, name);
+		if (!result.isSuccess()) {
+			return Result.resultFailed(result.getMessage());
+		}
+		return Result.resultSuccess("上传文件完成！", result.getData());
+	}
+
+	@Override
 	public Result<Void> deleteFile(String id) {
 		uploadFileService.delete(id);
 		return Result.resultSuccess("删除文件完成！");
