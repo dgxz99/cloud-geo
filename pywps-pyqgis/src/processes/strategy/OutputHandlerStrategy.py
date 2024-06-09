@@ -33,8 +33,8 @@ class OutputHandlerStrategy(ABC):
 					zipf.write(str(file_path), rel_path)
 
 	@staticmethod
-	def upload_file(url, file_path):
-		upload_url = url + '/upload'
+	def upload_file(url, filename, file_path):
+		upload_url = url + f'/upload-force-name/{filename.split(".")[0]}'
 		with open(file_path, 'rb') as f:
 			response = requests.put(upload_url, files={'file': f})
 		response.raise_for_status()

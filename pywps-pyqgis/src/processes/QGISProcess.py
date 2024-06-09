@@ -1,6 +1,4 @@
-import json
 import logging
-import threading
 import time
 import uuid
 import zipfile
@@ -41,7 +39,6 @@ class QGISProcess(Process):
 		)
 
 	def _handler(self, request, response):
-		# time.sleep(3000)
 		# 显式地调用ogr.UseExceptions()来设置异常处理的方式，防止终端输出FutureWarning
 		from osgeo import ogr
 		ogr.UseExceptions()

@@ -1,12 +1,11 @@
 import json
 import random
-import threading
-from concurrent.futures import ThreadPoolExecutor
 import uuid
-
 import flask
 import requests
 
+from concurrent.futures import ThreadPoolExecutor
+from dao.RedisClient import RedisClient
 from dao.mongo import MongoDB
 from pywps import Service, configuration
 from qgis.core import QgsApplication
@@ -24,10 +23,13 @@ for process in processes:
 # PyWPS service实例
 service = Service(processes, ['pywps.cfg'])
 
-pywps_blue = flask.Blueprint('pywps', __name__)
-
 # 创建线程池
-executor = ThreadPoolExecutor(max_workers=4)
+executor = ThreadPoolExecutor(max_workers=10)
+# RedisClient对象
+redis_client = RedisClient()
+
+# 创建flask蓝图
+pywps_blue = flask.Blueprint('pywps', __name__)
 
 
 @pywps_blue.route("/")
@@ -37,50 +39,49 @@ def hello():
 	return flask.render_template('home.html', request_url=request_url, server_url=server_url, process_descriptor=process_descriptor)
 
 
-# 存储任务状态和结果
-job_status = {}
-job_results = {}
-
-
-def run_job(req, job_id):
+def run_job(data, job_id):
 	try:
-		print(req)
-
-		res = requests.post(req["req_base_url"], json=req["req_data"])
-		job_status[job_id] = "Succeeded"
-		job_results[job_id] = res
+		response = requests.post('http://127.0.0.1:5000/jobs', json=data, timeout=3600)
+		job_data = {
+			"job-id": job_id,
+			"status": "Succeeded",
+			"result": response.json().get("outputs")
+		}
 	except Exception as e:
-		job_status[job_id] = f"Failed: {str(e)}"
-		job_results[job_id] = None
+		job_data = {
+			"job-id": job_id,
+			"status": f"Failed: {str(e)}",
+			"result": None
+		}
+
+	# 将任务状态和结果存储到 Redis 中
+	redis_client.setex(job_id, 24 * 60 * 60, json.dumps(job_data))
 
 
 @pywps_blue.route('/<base_url>', methods=['GET', 'POST'])
 def wps_handle(base_url):
 	flask_request = flask.request
-	data = json.loads(flask_request.data)
-	mode = data.get("mode", None)
-	if mode:
-		del data["mode"]
-	job_id = str(uuid.uuid4())
-
-	req = {
-		"req_data": data,
-		"req_method": flask_request.method,
-		"req_base_url": "http://127.0.0.1:5000/jobs",
-	}
-
-	if mode == "async":
-		job_status[job_id] = "Running"
-		executor.submit(run_job, req, job_id)
-		return flask.jsonify({'job-id': job_id})
+	if flask_request.method == 'POST':
+		data = json.loads(flask_request.data)  # 请求体
+		mode = data.get("mode", None)
+		job_id = str(uuid.uuid4()).replace('-', '')
+		if mode == "async":
+			del data["mode"]  # 删除异步表示，防止递归请求
+			job_data = {
+				"job-id": job_id,
+				"status": "Running",
+				"result": None
+			}
+			executor.submit(run_job, data, job_id)
+			redis_client.set(job_id, json.dumps(job_data))
+			return flask.jsonify(json.loads(redis_client.get(job_id)))
 
 	return service.call(flask_request)
 
 
 @pywps_blue.route('/jobs/<job_id>', methods=['GET'])
 def get_job_status(job_id):
-	status = job_status.get(job_id, "Unknown job ID")
-	return flask.jsonify({'job-id': job_id, 'status': status})
+	return flask.jsonify(json.loads(redis_client.get(job_id)))
 
 
 @pywps_blue.route('/processes/<path:identifier>', methods=['GET'])
