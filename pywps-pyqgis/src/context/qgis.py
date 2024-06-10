@@ -1,9 +1,14 @@
 # Windows下导入QGIS环境
-# def import_qgis_plugin():
-# 	import sys
-# 	sys.path.append('C:/Program Files/QGIS 3.28.15/apps/qgis-ltr/python/plugins')
-#
-# import_qgis_plugin()
+def import_qgis_plugin():
+	import sys
+	import platform
+	if platform.system() == 'Windows':
+		sys.path.append('C:/Program Files/QGIS 3.28.15/apps/qgis-ltr/python/plugins')
+	else:
+		sys.path.append('/usr/share/qgis/python/plugins')
+
+
+import_qgis_plugin()
 import processing
 from qgis.core import *
 

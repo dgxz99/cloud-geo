@@ -1,22 +1,22 @@
 server:
   port: 8800
   tomcat:
-    max-http-form-post-size: 1024MB
+    max-http-form-post-size: 10240MB
 spring:
   application:
     name: "wps-file-storage"
   servlet:
     multipart:
-      max-file-size: 1024MB
-      max-request-size: 1024MB
+      max-file-size: 10240MB
+      max-request-size: 10240MB
   jackson:
     deserialization:
       fail-on-unknown-properties: false
     default-property-inclusion: non_null
   cloud:
     consul:
-      host: "202.114.148.161"
-      port: 8500
+      host: "${CONSUL_HOST:127.0.0.1}"
+      port: ${CONSUL_PORT:8500}
       discovery:
         service-name: ${spring.application.name}
         instance-id: ${spring.application.name}-${spring.cloud.client.hostname}-${server.port}
@@ -31,7 +31,7 @@ io:
         core:
           storage-method: "minio"
         minio:
-          endpoint: "http://202.114.148.161:9000"
-          access-key: "m1TzA2Myp6cIH8spG2o9"
-          secret-key: "5iDrm6iM8WahKYyk2hYsAaYjDsOl68tPk68VvyOb"
-          bucket-name: "demo"
+          endpoint: "http://${MINIO_HOST:127.0.0.1}:${MINIO_PORT:9000}"
+          access-key: "${MINIO_ACCESS_KEY}"
+          secret-key: "${MINIO_SECRET_KEY}"
+          bucket-name: "${MINIO_BUCKET:wps-file}"

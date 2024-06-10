@@ -1,5 +1,7 @@
-# from context.qgis import import_qgis_plugin
-# import_qgis_plugin()
+from context.qgis import import_qgis_plugin
+
+import_qgis_plugin()
+
 import logging
 import time
 import uuid

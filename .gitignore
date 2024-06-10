@@ -15,6 +15,7 @@
 
 # Docker
 /dockerfile/**/*.tar
+/dockerfile/**/*.tar.gz
 /dockerfile/**/*.tar.xz
 /dockerfile/**/*.jar
 

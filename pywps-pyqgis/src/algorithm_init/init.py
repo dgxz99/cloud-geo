@@ -1,4 +1,3 @@
-import json
 from dao.mongo import MongoDB
 from algorithm_init.process_alg_wps import get_algorithm_help, process_algorithm_info, convert_wps
 
@@ -16,10 +15,9 @@ def init_database():
 		alg_help = get_algorithm_help(alg)
 		try:
 			alg_wps = convert_wps(process_algorithm_info(alg_help))
-		except:
-			print(alg.id())
-			print(alg_help)
-			break
+		except Exception as e:
+			print(e, alg.id())
+		# print(alg_help)
 
 		# 保存数据到文件
 		# with open("json_datas/{}.json".format(alg_wps.get("Identifier").replace(":", "_")), "w", encoding="utf-8") as file:
