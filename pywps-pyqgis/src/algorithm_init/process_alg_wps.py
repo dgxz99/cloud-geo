@@ -6,10 +6,9 @@ import sys
 import processing
 from qgis.core import *
 from processing.core.Processing import Processing
-
 from algorithm_init.alg_wps2.algorithm import AlgorithmWPS, LiteralData, BoundingBoxData, ComplexData, Format
 
-with open('../../output_map_rule.json', 'r', encoding='utf8') as f:
+with open('output_map_rule.json', 'r', encoding='utf8') as f:
 	output_map = json.load(f)
 
 
@@ -208,17 +207,16 @@ def parameters_list(parameters):
 			parameter_list.append(param_data)
 	return parameter_list
 
-
-if __name__ == '__main__':
-	# 初始化QGIS算子，保证能够正常调用
-	QgsApplication.setPrefixPath(r"D:\GIS\QGIS", True)
-	qgs = QgsApplication([], False)
-	qgs.initQgis()
-	Processing().initialize()
-
-	# 获取算子对象
-	algorithm = qgs.processingRegistry().createAlgorithmById("gdal:gdal2tiles")
-	algorithm_help = get_algorithm_help(algorithm)
-	info = process_algorithm_info(algorithm_help)
-	print(info)
-	print(convert_wps(info))
+# if __name__ == '__main__':
+# 	# 初始化QGIS算子，保证能够正常调用
+# 	QgsApplication.setPrefixPath(r"D:\GIS\QGIS", True)
+# 	qgs = QgsApplication([], False)
+# 	qgs.initQgis()
+# 	Processing().initialize()
+#
+# 	# 获取算子对象
+# 	algorithm = qgs.processingRegistry().createAlgorithmById("gdal:gdal2tiles")
+# 	algorithm_help = get_algorithm_help(algorithm)
+# 	info = process_algorithm_info(algorithm_help)
+# 	print(info)
+# 	print(convert_wps(info))

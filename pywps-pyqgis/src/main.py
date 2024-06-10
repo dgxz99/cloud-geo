@@ -1,10 +1,22 @@
 import atexit
+import os.path
+
+# 准备日志文件夹
+if not os.path.exists("logs"):
+	os.mkdir("logs")
+
 import flask
 from utils.consul_service import register_consul, deregister_consul
 from api.pywpsAPI import pywps_blue
 from context.config import get_config
+from algorithm_init.init import init_database
 
+
+# 读取配置
 config = get_config()
+
+# 初始化算子库
+init_database()
 
 # 获取consul相关配置
 service_name = config.get("consul", "service_name")

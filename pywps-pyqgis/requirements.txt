@@ -1,0 +1,5 @@
+Flask
+py-consul
+pymongo
+redis
+pywps

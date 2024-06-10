@@ -5,21 +5,20 @@ import zipfile
 import os
 import mimetypes
 import re
-
 import pywps.configuration
 from processes.strategy.OutputHandlerContext import OutputHandlerContext
 from processes.strategy.OutputHandlerParams import OutputHandlerParams
 from pywps import Process, LiteralInput, ComplexInput
-from processing.core.Processing import Processing, processing
+from processing.core.Processing import processing
 from qgis.core import *
 from pywps.app.exceptions import ProcessError
 
-QgsApplication.setPrefixPath(r"D:\GIS\QGIS", True)
-qgs = QgsApplication([], False)
-qgs.initQgis()
-print('qgs initialized')
-Processing().initialize()
-print('algorithm initialized')
+# QgsApplication.setPrefixPath(r"D:\GIS\QGIS", True)
+# qgs = QgsApplication([], False)
+# qgs.initQgis()
+# print('qgs initialized')
+# Processing().initialize()
+# print('algorithm initialized')
 
 LOGGER = logging.getLogger("PYWPS")
 
