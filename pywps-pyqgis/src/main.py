@@ -1,16 +1,18 @@
 import atexit
 import os.path
 
-# 准备日志文件夹
-if not os.path.exists("logs"):
-	os.mkdir("logs")
+# 准备所有文件夹
+dir_list = ['logs', 'workdir', 'outputs']
+for dir in dir_list:
+	if not os.path.exists(dir):
+		os.mkdir(dir)
+		print(f'{dir} is not exists! Created it!')
 
 import flask
 from utils.consul_service import register_consul, deregister_consul
 from api.pywpsAPI import pywps_blue
 from context.config import get_config
 from algorithm_init.init import init_database
-
 
 # 读取配置
 config = get_config()

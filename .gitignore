@@ -22,7 +22,7 @@
 /**/logs/**
 
 # test test_data
-/**/static/data/**
+/**/static/**
 /**/workdir/**
 /**/outputs/**
 /**/tests/
