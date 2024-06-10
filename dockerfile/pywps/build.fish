@@ -1,4 +1,11 @@
 #!/bin/fish
+echo 删除缓存...
+set cache_list (find ../../pywps-pyqgis/src -type d -name __pycache__)
+for cache_dir in $cache_list
+    rm -r $cache_dir
+    echo 已删除缓存：$cache_dir
+end
+
 echo 正在打包代码...
 tar -czvf src.tar.gz -C ../../pywps-pyqgis/src .
 tar -czvf data.tar.gz -C ../../pywps-pyqgis templates output_map_rule.json process_WPS2.0_description_json pywps.cfg requirements.txt
