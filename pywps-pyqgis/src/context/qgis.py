@@ -1,28 +1,24 @@
 # Windows下导入QGIS环境
-def import_qgis_plugin():
-	import sys
-	import platform
-	if platform.system() == 'Windows':
-		sys.path.append('C:/Program Files/QGIS 3.28.15/apps/qgis-ltr/python/plugins')
-	else:
-		sys.path.append('/usr/share/qgis/python/plugins')
-
-
-import_qgis_plugin()
+# def import_qgis_plugin():
+# 	import sys
+# 	import platform
+# 	if platform.system() == 'Windows':
+# 		sys.path.append('C:/Program Files/QGIS 3.28.15/apps/qgis-ltr/python/plugins')
+# 	else:
+# 		sys.path.append('/usr/share/qgis/python/plugins')
+#
+#
+# import_qgis_plugin()
 import processing
 from qgis.core import *
-
-qgs = None
 
 
 # 获取QGIS全局对象
 def get_qgis():
-	global qgs
-	if not qgs:
+	if not hasattr(get_qgis, 'qgs'):
 		# 初始化QGIS算子，保证能够正常调用
-		qgs = QgsApplication([], False)
-		qgs.initQgis()
+		get_qgis.qgs = QgsApplication([], False)
+		get_qgis.qgs.initQgis()
 		processing.Processing().initialize()
-		print("algorithm initialized")
-
-	return qgs
+		print("Algorithm initialized!")
+	return get_qgis.qgs

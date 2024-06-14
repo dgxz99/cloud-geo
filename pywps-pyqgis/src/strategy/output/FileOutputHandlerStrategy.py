@@ -2,8 +2,8 @@ import os
 import shutil
 import uuid
 
-from processes.strategy.OutputHandlerParams import OutputHandlerParams
-from processes.strategy.OutputHandlerStrategy import OutputHandlerStrategy
+from strategy.output.OutputHandlerParams import OutputHandlerParams
+from strategy.output.OutputHandlerStrategy import OutputHandlerStrategy
 
 
 class FileOutputHandlerStrategy(OutputHandlerStrategy):
@@ -23,6 +23,10 @@ class FileOutputHandlerStrategy(OutputHandlerStrategy):
 				# 输出栅格等单一文件
 				filename = os.path.basename(params.output_data)
 				file_path = os.path.join(params.output_dir, filename)
-		output_file = self.upload_file(params.output_url, filename, file_path)
-		params.response.outputs[params.output_name].data = f'{params.output_url}/retrieve/{output_file}'
-		os.remove(file_path)  # 删除本地文件
+
+		if params.deploy_mode == 'distributed':
+			output_file = self.upload_file(params.output_url, file_path)
+			return f'{params.output_url}/retrieve/{output_file}'
+		else:
+			return params.output_url + filename
+

@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 
 import requests
 
-from processes.strategy.OutputHandlerParams import OutputHandlerParams
+from strategy.output.OutputHandlerParams import OutputHandlerParams
 
 
 class OutputHandlerStrategy(ABC):
@@ -33,12 +33,20 @@ class OutputHandlerStrategy(ABC):
 					zipf.write(str(file_path), rel_path)
 
 	@staticmethod
-	def upload_file(url, filename, file_path):
+	def upload_file(url, file_path):
+		"""
+		上传文件
+		Args:
+			url: 文件服务URL
+			file_path: 完整文件路径，包含文件名
+		"""
+		filename = os.path.basename(file_path)
 		upload_url = url + f'/upload-force-name/{filename.split(".")[0]}'
 		with open(file_path, 'rb') as f:
 			response = requests.put(upload_url, files={'file': f})
 		response.raise_for_status()
-		data = response.json()["data"]
-		output_file_name = data["name"]
-		output_file_ext = data["format"]
-		return output_file_name + '.' + output_file_ext
+		os.remove(file_path)  # 删除本地文件
+		# data = response.json()["data"]
+		# output_file_name = data["name"]
+		# output_file_ext = data["format"]
+		# return output_file_name + '.' + output_file_ext

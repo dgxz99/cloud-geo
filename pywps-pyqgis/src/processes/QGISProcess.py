@@ -1,34 +1,27 @@
-from context.qgis import import_qgis_plugin
+# from context.qgis import import_qgis_plugin
+#
+# import_qgis_plugin()
 
-import_qgis_plugin()
-
-import logging
 import time
 import uuid
 import zipfile
 import os
 import mimetypes
 import re
-import pywps.configuration
-from processes.strategy.OutputHandlerContext import OutputHandlerContext
-from processes.strategy.OutputHandlerParams import OutputHandlerParams
-from pywps import Process, LiteralInput, ComplexInput
+
+from context.qgis import get_qgis
+from strategy.output.OutputHandlerContext import OutputHandlerContext
+from strategy.output.OutputHandlerParams import OutputHandlerParams
+from pywps import Process, LiteralInput, ComplexInput, LiteralOutput
+from pywps.configuration import get_config_value
 from processing.core.Processing import processing
 from qgis.core import *
 from pywps.app.exceptions import ProcessError
 
-# QgsApplication.setPrefixPath(r"D:\GIS\QGIS", True)
-# qgs = QgsApplication([], False)
-# qgs.initQgis()
-# print('qgs initialized')
-# Processing().initialize()
-# print('algorithm initialized')
-
-LOGGER = logging.getLogger("PYWPS")
-
 
 class QGISProcess(Process):
 	def __init__(self, identifier, title, abstract, inputs, outputs):
+		outputs.append(LiteralOutput('provenance', 'provenance', data_type='string'))
 		super(QGISProcess, self).__init__(
 			handler=self._handler,
 			identifier=str(identifier),
@@ -40,21 +33,26 @@ class QGISProcess(Process):
 			store_supported=True,
 			status_supported=True
 		)
-
+		self.provenance = {}
+		
 	def _handler(self, request, response):
 		# 显式地调用ogr.UseExceptions()来设置异常处理的方式，防止终端输出FutureWarning
 		from osgeo import ogr
 		ogr.UseExceptions()
 
 		temp_dir = self.workdir
-		output_dir = pywps.configuration.get_config_value("server", "outputpath")
-		output_url = pywps.configuration.get_config_value("file", "file_server_url")
+		output_dir = get_config_value("server", "outputpath")
+		deploy_mode = get_config_value("deploy", "mode")
+		if deploy_mode == "distributed":
+			output_url = get_config_value("file", "file_server_url")
+		else:  # 其他情况都为single，单体部署
+			output_url = get_config_value("server", "outputurl")
 		output_file_name = None
 
 		try:
 			# 构建算法参数
 			algorithm_params = {}
-			alg = QgsApplication.processingRegistry().createAlgorithmById(self.identifier)
+			alg = get_qgis().processingRegistry().createAlgorithmById(self.identifier)
 
 			for param in self.inputs:
 				if 'OUTPUT' in param.identifier:
@@ -86,39 +84,41 @@ class QGISProcess(Process):
 					self._handle_literal_input(algorithm_params, param, input_data)
 
 			# 打印参数信息
-			print("algorithm_params:", algorithm_params)
-			LOGGER.info(f"algorithm_name: {self.identifier}")
+			# print("algorithm_params:", algorithm_params)
 			start_time = time.time()
-			LOGGER.info(f"算子启动于: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time))}")
-			LOGGER.info(f"algorithm_params: {algorithm_params}")
+			self.provenance["name"] = self.identifier
+			self.provenance["params"] = algorithm_params
+			self.provenance["start_time"] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time))
 
 			# 调用 QGIS 算法执行逻辑，使用 algorithm_identifier 执行算法
 			ret = processing.run(self.identifier, algorithm_params)
 
-			LOGGER.info(f"算子运行时长: {time.time() - start_time}")
-
 			# 初始化输出文件上下文管理器
 			output_handler_context = OutputHandlerContext()
+			result = []
 			# 处理输出文件
 			for param_name, ret_data in ret.items():
 				if ret_data:
 					output_params = OutputHandlerParams(
 						self.identifier, algorithm_params, param_name, ret_data,
-						response, output_dir, output_url, output_file_name
+						response, output_dir, output_url, output_file_name, deploy_mode
 					)
-					output_handler_context.handle_output(output_params)
+					data = output_handler_context.handle_output(output_params)
+					result.append({param_name: data})
 
 			print(f'\033[94m{self.identifier} run success!\033[0m')  # 终端蓝色打印，成功执行算子
-			LOGGER.info(f"{self.identifier}运行成功!")
-			LOGGER.info(f"Result: {ret}")
+
+			self.provenance["run_time"] = time.time() - start_time
+			self.provenance["status"] = f"{self.identifier}运行成功!"
+			self.provenance["result"] = result
 
 		except Exception as e:
 			# 处理异常
 			print(f'\033[93m{self.identifier} run error!\033[0m')  # 终端黄色打印，算子执行失败
-			LOGGER.error(f"{self.identifier}运行发生错误!")
+			self.provenance["status"] = f"{self.identifier}运行发生错误!"
 			raise ProcessError(f"算子运行时发生错误: {str(e)}")
-
-		return response
+		finally:
+			response.outputs["provenance"].data = self.provenance
 
 	def _handle_literal_input(self, algorithm_params, param, input_data):
 		"""

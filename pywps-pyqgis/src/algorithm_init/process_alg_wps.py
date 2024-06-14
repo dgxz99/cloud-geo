@@ -5,7 +5,6 @@ import re
 import sys
 import processing
 from qgis.core import *
-from processing.core.Processing import Processing
 from algorithm_init.alg_wps2.algorithm import AlgorithmWPS, LiteralData, BoundingBoxData, ComplexData, Format
 
 with open('output_map_rule.json', 'r', encoding='utf8') as f:

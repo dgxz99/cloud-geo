@@ -3,3 +3,4 @@ py-consul
 pymongo
 redis
 pywps
+requests

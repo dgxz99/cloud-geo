@@ -1,5 +1,5 @@
 class OutputHandlerParams:
-    def __init__(self, identifier, algorithm_params, output_name, output_data, response, output_dir, output_url, output_file_name):
+    def __init__(self, identifier, algorithm_params, output_name, output_data, response, output_dir, output_url, output_file_name, deploy_mode=None):
         """
         Args:
             identifier: 算子的唯一标识符
@@ -19,3 +19,4 @@ class OutputHandlerParams:
         self.output_dir = output_dir
         self.output_url = output_url
         self.output_file_name = output_file_name
+        self.deploy_mode = deploy_mode
