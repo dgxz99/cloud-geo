@@ -20,7 +20,7 @@ def prepare_folders(dir_list):
 
 
 def create_app():
-	app = flask.Flask(__name__)
+	app = flask.Flask(__name__, static_folder='../static')
 
 	# 注册蓝图
 	app.register_blueprint(pywps_blue)
@@ -46,14 +46,15 @@ def main(config_parameters):
 	# 初始化算子库
 	init_database()
 
-	# 获取consul相关配置
-	service_name = config.get("consul", "service_name")
-	service_ip = config.get("consul", "service_ip")
-	service_port = config.getint("consul", "service_port")
+	if config['deploy']['mode'] == 'distributed':
+		# 获取consul相关配置
+		service_name = config.get("consul", "service_name")
+		service_ip = config.get("consul", "service_ip")
+		service_port = config.getint("consul", "service_port")
 
-	# 注册到consul
-	register_consul(service_name, service_ip, service_port)
-	atexit.register(deregister_consul, service_name, service_ip, service_port)
+		# 注册到consul
+		register_consul(service_name, service_ip, service_port)
+		atexit.register(deregister_consul, service_name, service_ip, service_port)
 
 	# 创建 Flask 应用
 	app = create_app()

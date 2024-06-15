@@ -13,6 +13,13 @@ from processes.QGISProFactory import QGISProcFactory
 from strategy.job_store.JobStoreContext import JobStoreContext
 from utils.job_task import run_job
 
+# 配置上传目录
+UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), '../../inputs')
+
+# 确保上传目录存在
+if not os.path.exists(UPLOAD_FOLDER):
+	os.makedirs(UPLOAD_FOLDER)
+
 # 算子初始化
 processes = QGISProcFactory().init_algorithms()
 # PyWPS service实例
@@ -107,6 +114,34 @@ def outputfile(filename):
 			response.headers["Content-Disposition"] = f"attachment; filename={filename}"
 			print(f'\033[94m{filename}下载成功！\033[0m')
 			return response
+	else:
+		flask.abort(404)
+
+
+# 上传文件接口
+@pywps_blue.route('/upload', methods=['POST'])
+def upload_file():
+	if deploy_mode == 'single':
+		if 'file' not in flask.request.files:
+			return flask.jsonify({'error': 'No file part'}), 400
+		file = flask.request.files['file']
+		if file.filename == '':
+			return flask.jsonify({'error': 'No selected file'}), 400
+		if file:
+			# 生成唯一的文件名
+			filename = f"{uuid.uuid4().hex}_{file.filename}"
+			file_path = os.path.join(UPLOAD_FOLDER, filename)
+			file.save(file_path)
+			return flask.jsonify({'message': 'File uploaded successfully', 'filename': filename}), 201
+	else:
+		flask.abort(404)
+
+
+# 提供上传文件的访问URL
+@pywps_blue.route('/inputs/<filename>')
+def uploaded_file(filename):
+	if deploy_mode == 'single':
+		return flask.send_from_directory(UPLOAD_FOLDER, filename)
 	else:
 		flask.abort(404)
 
