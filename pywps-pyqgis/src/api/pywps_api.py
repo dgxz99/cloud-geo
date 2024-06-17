@@ -22,6 +22,15 @@ if not os.path.exists(UPLOAD_FOLDER):
 
 # 算子初始化
 processes = QGISProcFactory().init_algorithms()
+
+# 准备所有文件夹
+dir_list = ['logs', 'workdir', 'outputs']
+
+for _dir in dir_list:
+	if not os.path.exists(_dir):
+		os.mkdir(_dir)
+		print(f'{_dir} does not exist! Created it!')
+
 # PyWPS service实例
 service = Service(processes, ['pywps.cfg'])
 # 读取部署模式

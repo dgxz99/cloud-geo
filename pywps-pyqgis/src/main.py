@@ -11,16 +11,8 @@ from algorithm_init.init import init_database
 from utils.job_task import start_cleanup_thread
 
 
-# 准备所有文件夹
-def prepare_folders(dir_list):
-	for _dir in dir_list:
-		if not os.path.exists(_dir):
-			os.mkdir(_dir)
-			print(f'{_dir} does not exist! Created it!')
-
-
 def create_app():
-	app = flask.Flask(__name__, static_folder='../static')
+	app = flask.Flask(__name__)
 
 	# 注册蓝图
 	app.register_blueprint(pywps_blue)
@@ -30,10 +22,6 @@ def create_app():
 
 
 def main(config_parameters):
-	# 准备所有文件夹
-	dir_list = ['logs', 'workdir', 'outputs']
-	prepare_folders(dir_list)
-
 	# 读取配置
 	deploy_mode = config_parameters.get('deploy_mode', None)  # 部署模式，默认为 None
 
