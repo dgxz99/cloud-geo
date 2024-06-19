@@ -11,6 +11,7 @@
 # import_qgis_plugin()
 import processing
 from qgis.core import *
+from processing.core.ProcessingConfig import ProcessingConfig, Setting
 
 
 # 获取QGIS全局对象
@@ -19,6 +20,15 @@ def get_qgis():
 		# 初始化QGIS算子，保证能够正常调用
 		get_qgis.qgs = QgsApplication([], False)
 		get_qgis.qgs.initQgis()
+
+		# 加载OTB算子
+		otb_setting = Setting(
+			ProcessingConfig.tr('General'),
+			'OTB_FOLDER',
+			ProcessingConfig.tr('OTB installation folder'), True)
+		otb_setting.value = r"D:\Program Files\QGIS 3.28.13\OTB"
+		ProcessingConfig().addSetting(otb_setting)
+
 		processing.Processing().initialize()
 		print("Algorithm initialized!")
 	return get_qgis.qgs

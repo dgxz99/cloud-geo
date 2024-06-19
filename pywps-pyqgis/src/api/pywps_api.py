@@ -48,44 +48,56 @@ def execute():
 	flask_request = flask.request
 	data = json.loads(flask_request.data)  # 请求体
 	mode = data.get("mode", None)
-	job_id = str(uuid.uuid4()).replace('-', '')
+	job_id = uuid.uuid4().hex
 	if mode == "async":
 		del data["mode"]  # 删除异步表示，防止递归请求
 		job_data = {
-			"job-id": job_id,
+			"jobId": job_id,
 			"status": "Running",
 			"result": None,
 			"timestamp": time.time()
 		}
+		# 异步执行算子
 		executor.submit(run_job, job_store_strategy, data, job_id)
-		job_store_strategy.save_job(job_id, job_data)
-		_data = job_store_strategy.get_job(job_id)
-		del _data['timestamp']
-		return flask.jsonify(_data)
+		job_store_strategy.save_job(job_id, json.dumps(job_data))
+		stored_job_data = json.loads(job_store_strategy.get_job(job_id))
+		del stored_job_data['timestamp']
+		if stored_job_data['result']:
+			del stored_job_data['result']['jobId']
+			del stored_job_data['result']['status']
+		return json.dumps(stored_job_data)
 
-	# wps_resp = service.call(flask_request).json
+	provenance = None
+	wps_resp = service.call(flask_request).json
+	try:
+		for val in wps_resp['outputs']:
+			if val.get('identifier') == 'provenance':
+				provenance = json.loads(val.get('data').replace("'", "\""))
+				break
 
-	# response = dict()
-	# response['status'] = wps_resp['status']
-	# out = wps_resp['process']['outputs']
-	# d = {}
-	# for val in out:
-	# 	id = val.get('identifier')
-	# 	if id is None:
-	# 		continue
-	# 	type = val.get('type')
-	# 	key = 'bbox' if type == 'bbox' else 'data'
-	# 	if key in val:
-	# 		d[id] = val[key]
-	# response['outputs'] = d
-	# print(response.get_response_doc())
+		response = json.dumps({
+			'jobId': job_id,
+			'status': wps_resp['status']['status'],
+			'completionTime': provenance['estimated_completion'],
+			'expirationTime': provenance['estimated_completion'],
+			'percentCompleted': wps_resp['status']['percent_done'],
+			'message': wps_resp['status']['message'],
+			'output': provenance['result']
+		})
+	except:
+		response = json.dumps({
+			'jobId': job_id,
+			'status': wps_resp['status']['status'],
+			'percentCompleted': wps_resp['status']['percent_done'],
+			'message': wps_resp['status']['message'],
+		})
 
-	return service.call(flask_request)
+	return response
 
 
 @pywps_blue.route('/jobs/<job_id>', methods=['GET'])
 def get_job_status(job_id):
-	job_data = job_store_strategy.get_job(job_id)
+	job_data = json.loads(job_store_strategy.get_job(job_id))
 	if job_data:
 		del job_data['timestamp']
 		return flask.jsonify(job_data)

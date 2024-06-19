@@ -1,3 +1,4 @@
+import json
 import time
 import requests
 import threading
@@ -12,23 +13,23 @@ def run_job(job_store_strategy, data, job_id):
 		job_id: job-id
 	"""
 	try:
-		response = requests.post('http://127.0.0.1:5000/jobs', json=data, timeout=3600)
+		response = requests.post('http://127.0.0.1:5000/jobs', json=data, timeout=36000).json()
 		job_data = {
-			"job-id": job_id,
-			"status": "Succeeded",
-			"result": response.json().get("outputs"),
+			"jobId": job_id,
+			"status": response['status'],
+			"result": response,
 			"timestamp": time.time()
 		}
-	except Exception as e:
+	except:
 		job_data = {
-			"job-id": job_id,
-			"status": f"Failed: {str(e)}",
+			"jobId": job_id,
+			"status": "failed",
 			"result": None,
 			"timestamp": time.time()
 		}
 
 	# 将任务状态和结果存储起来
-	job_store_strategy.save_job_timed(job_id, job_data)
+	job_store_strategy.save_job_timed(job_id, json.dumps(job_data))
 
 
 def cleanup_thread_func(job_store_strategy):

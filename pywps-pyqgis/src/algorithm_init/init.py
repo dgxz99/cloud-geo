@@ -9,24 +9,19 @@ def init_database():
 	mongo = MongoDB()
 	# 每次初始化时删除已有的数据，重新初始化数据
 	if len(mongo.find_all("algorithms")) != 0:
-		print("删除算子数量为：", mongo.delete_all_documents("algorithms"))
+		print("删除算子数量为：", mongo.delete_all_documents("algorithms"), mongo.delete_all_documents("algorithms_qgs"))
 
 	for alg in get_qgis().processingRegistry().algorithms():
-		alg_help = get_algorithm_help(alg)
 		try:
+			# 存储qgis算子原本描述信息
+			alg_help = get_algorithm_help(alg)
+			mongo.add_one("algorithms_qgs", {'identifier': alg.id(), 'description': alg_help})
+			# 存储qgis算子wps2.0描述信息
 			alg_wps = convert_wps(process_algorithm_info(alg_help))
-			# 存储数据到数据库
 			mongo.add_one("algorithms", alg_wps)
 		except Exception as e:
 			print(alg.id(), e)
 
-		# 保存数据到文件
-		# with open("json_datas/{}.json".format(alg_wps.get("Identifier").replace(":", "_")), "w", encoding="utf-8") as file:
-		# 	try:
-		# 		json.dump(alg_wps, file)
-		# 	except Exception:
-		# 		print(alg_wps.get("Identifier"))
-		# 		print(alg_wps)
 	print("Database initialized!")
 	# 关闭数据库连接
 	mongo.close()

@@ -1,6 +1,5 @@
 import argparse
 import atexit
-import os.path
 
 import flask
 from utils.consul_service import register_consul, deregister_consul

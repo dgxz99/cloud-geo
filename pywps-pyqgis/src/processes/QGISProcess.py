@@ -2,13 +2,13 @@
 #
 # import_qgis_plugin()
 
-import time
 import uuid
 import zipfile
 import os
 import mimetypes
 import re
 
+from datetime import datetime
 from context.qgis import get_qgis
 from strategy.output.OutputHandlerContext import OutputHandlerContext
 from strategy.output.OutputHandlerParams import OutputHandlerParams
@@ -34,7 +34,7 @@ class QGISProcess(Process):
 			status_supported=True
 		)
 		self.provenance = {}
-		
+
 	def _handler(self, request, response):
 		# 显式地调用ogr.UseExceptions()来设置异常处理的方式，防止终端输出FutureWarning
 		from osgeo import ogr
@@ -82,20 +82,21 @@ class QGISProcess(Process):
 					self._handle_complex_input(algorithm_params, param, input_data, temp_dir)
 				elif isinstance(param, LiteralInput):
 					self._handle_literal_input(algorithm_params, param, input_data)
-
+			# 模拟算子运行出错
+			# print(1/0)
 			# 打印参数信息
 			# print("algorithm_params:", algorithm_params)
-			start_time = time.time()
+			start_time = datetime.now()
 			self.provenance["name"] = self.identifier
 			self.provenance["params"] = algorithm_params
-			self.provenance["start_time"] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time))
+			self.provenance["start_time"] = start_time.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
 
 			# 调用 QGIS 算法执行逻辑，使用 algorithm_identifier 执行算法
 			ret = processing.run(self.identifier, algorithm_params)
 
 			# 初始化输出文件上下文管理器
 			output_handler_context = OutputHandlerContext()
-			result = []
+			result = dict()
 			# 处理输出文件
 			for param_name, ret_data in ret.items():
 				if ret_data:
@@ -103,19 +104,20 @@ class QGISProcess(Process):
 						self.identifier, algorithm_params, param_name, ret_data,
 						response, output_dir, output_url, output_file_name, deploy_mode
 					)
-					data = output_handler_context.handle_output(output_params)
-					result.append({param_name: data})
+					result[param_name] = output_handler_context.handle_output(output_params)
 
 			print(f'\033[94m{self.identifier} run success!\033[0m')  # 终端蓝色打印，成功执行算子
 
-			self.provenance["run_time"] = time.time() - start_time
+			estimated_completion = datetime.now()
+			self.provenance["estimated_completion"] = estimated_completion.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
+			self.provenance["run_time"] = (datetime.now() - start_time).total_seconds()
 			self.provenance["status"] = f"{self.identifier}运行成功!"
 			self.provenance["result"] = result
 
 		except Exception as e:
 			# 处理异常
 			print(f'\033[93m{self.identifier} run error!\033[0m')  # 终端黄色打印，算子执行失败
-			self.provenance["status"] = f"{self.identifier}运行发生错误!"
+			self.provenance["status"] = f"{self.identifier}运行失败!"
 			raise ProcessError(f"算子运行时发生错误: {str(e)}")
 		finally:
 			response.outputs["provenance"].data = self.provenance

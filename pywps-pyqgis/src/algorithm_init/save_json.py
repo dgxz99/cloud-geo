@@ -1,0 +1,21 @@
+import json
+from algorithm_init.process_alg_wps import get_algorithm_help, convert_wps, process_algorithm_info
+from context.qgis import get_qgis
+
+
+def save_json():
+	for alg in get_qgis().processingRegistry().algorithms():
+		alg_help = get_algorithm_help(alg)
+		alg_wps = convert_wps(process_algorithm_info(alg_help))
+
+		# 保存数据到文件
+		with open("src/algorithm_init/json_datas/{}.json".format(alg_wps.get("Identifier").replace(":", "_")), "w", encoding="utf-8") as file:
+			try:
+				json.dump(alg_wps, file)
+			except Exception:
+				print(alg_wps.get("Identifier"))
+				print(alg_wps)
+
+
+if __name__ == '__main__':
+	save_json()
