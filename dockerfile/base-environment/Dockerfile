@@ -7,16 +7,24 @@ ENV PYTHONPATH=/usr/share/qgis/python/plugins
 ENV PATH=/opt/otb/bin:$PATH
 ENV DISPLAY=:99
 # 配置环境
-RUN rm /etc/apt/sources.list.d/* \
-	# 配置软件源
-	&& echo "deb http://deb.debian.org/debian bookworm main non-free non-free-firmware contrib" > /etc/apt/sources.list \
-	&& echo "deb http://deb.debian.org/debian bookworm-updates main non-free non-free-firmware contrib" >> /etc/apt/sources.list \
-	&& echo "deb http://deb.debian.org/debian bookworm-proposed-updates main non-free non-free-firmware contrib" >> /etc/apt/sources.list \
-	&& echo "deb http://deb.debian.org/debian bookworm-backports main non-free non-free-firmware contrib" >> /etc/apt/sources.list \
-	&& echo "deb http://deb.debian.org/debian bookworm-backports-sloppy main non-free non-free-firmware contrib" >> /etc/apt/sources.list \
+RUN apt update \
+	# 安装证书
+	&& apt install -y ca-certificates \
+	# 替换软件源
+	&& rm /etc/apt/sources.list.d/* \
+	&& echo "deb https://mirrors.ustc.edu.cn/debian bookworm main non-free non-free-firmware contrib" > /etc/apt/sources.list \
+	&& echo "deb https://mirrors.ustc.edu.cn/debian bookworm-updates main non-free non-free-firmware contrib" >> /etc/apt/sources.list \
+	&& echo "deb https://mirrors.ustc.edu.cn/debian bookworm-proposed-updates main non-free non-free-firmware contrib" >> /etc/apt/sources.list \
+	&& echo "deb https://mirrors.ustc.edu.cn/debian bookworm-backports main non-free non-free-firmware contrib" >> /etc/apt/sources.list \
+	&& echo "deb https://mirrors.ustc.edu.cn/debian bookworm-backports-sloppy main non-free non-free-firmware contrib" >> /etc/apt/sources.list \
 	&& apt update \
 	&& apt full-upgrade -y \
-	&& apt install -y gnupg software-properties-common ca-certificates wget curl python3 python3-dev python3-numpy make cmake gcc g++ swig findutils file saga xvfb \
+	# 内置常用工具
+	&& apt install -y gnupg software-properties-common vim wget xvfb \
+	# OTB所需工具
+	curl python3 python3-dev python3-numpy make cmake gcc g++ swig findutils file \
+	# Saga工具
+	saga \
 	# 添加QGIS软件源
 	&& wget -O /etc/apt/keyrings/qgis-archive-keyring.gpg https://download.qgis.org/downloads/qgis-archive-keyring.gpg \
 	&& echo "Types: deb deb-src" > /etc/apt/sources.list.d/qgis.sources \
@@ -34,7 +42,6 @@ RUN rm /etc/apt/sources.list.d/* \
 	&& wget -O /otb.tar.gz https://www.orfeo-toolbox.org/packages/OTB-9.0.0-Linux.tar.gz \
 	&& tar -xzvf /otb.tar.gz -C /opt/otb \
 	# 清理
-	&& apt purge -y wget \
 	&& apt autoremove -y \
 	&& apt clean \
 	&& rm -rf /otb.tar.gz /var/lib/apt/lists/* /install-qgis.sh \
