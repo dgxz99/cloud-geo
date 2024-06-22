@@ -79,7 +79,7 @@ def execute():
 			'jobId': job_id,
 			'status': wps_resp['status']['status'],
 			'completionTime': provenance['estimated_completion'],
-			'expirationTime': provenance['estimated_completion'],
+			'expirationTime': provenance['expiration_time'],
 			'percentCompleted': wps_resp['status']['percent_done'],
 			'message': wps_resp['status']['message'],
 			'output': provenance['result']
@@ -108,7 +108,19 @@ def get_job_status(job_id):
 @pywps_blue.route('/processes', methods=['GET'])
 def get_capabilities():
 	flask_request = flask.request
-	return service.call(flask_request)
+	pywps_resp = service.call(flask_request).json
+
+	response = json.dumps({
+		"service": "WPS",
+		"version": "2.0",
+		"title": pywps_resp["title"],
+		"abstract": pywps_resp["abstract"],
+		"keywords": pywps_resp["keywords"],
+		"keywords_type": pywps_resp["keywords_type"],
+		"provider": pywps_resp["provider"],
+		"contents": [{"Title": p["title"], "Abstract": p["abstract"], "Identifier": p["identifier"]} for p in pywps_resp["processes"]]
+	})
+	return response
 
 
 @pywps_blue.route('/processes/<path:identifier>', methods=['GET'])
@@ -116,7 +128,8 @@ def describe_process(identifier):
 	alg = MongoDB().find_one("algorithms", {"Identifier": identifier})
 	if alg and '_id' in alg:
 		alg['_id'] = str(alg['_id'])
-	return flask.jsonify(alg)
+
+	return json.dumps(alg)
 
 
 @pywps_blue.route('/outputs/<path:filename>', methods=['GET'])

@@ -8,7 +8,7 @@ import os
 import mimetypes
 import re
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from context.qgis import get_qgis
 from strategy.output.OutputHandlerContext import OutputHandlerContext
 from strategy.output.OutputHandlerParams import OutputHandlerParams
@@ -109,7 +109,9 @@ class QGISProcess(Process):
 			print(f'\033[94m{self.identifier} run success!\033[0m')  # 终端蓝色打印，成功执行算子
 
 			estimated_completion = datetime.now()
+			expiration_time = estimated_completion + timedelta(days=1)
 			self.provenance["estimated_completion"] = estimated_completion.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
+			self.provenance["expiration_time"] = expiration_time.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
 			self.provenance["run_time"] = (datetime.now() - start_time).total_seconds()
 			self.provenance["status"] = f"{self.identifier}运行成功!"
 			self.provenance["result"] = result
