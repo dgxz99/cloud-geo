@@ -1,6 +1,0 @@
-deb http://mirrors.ustc.edu.cn/debian bookworm main non-free non-free-firmware contrib
-deb http://mirrors.ustc.edu.cn/debian bookworm-updates main non-free non-free-firmware contrib
-deb http://mirrors.ustc.edu.cn/debian bookworm-proposed-updates main non-free non-free-firmware contrib
-deb http://mirrors.ustc.edu.cn/debian bookworm-backports main non-free non-free-firmware contrib
-deb http://mirrors.ustc.edu.cn/debian bookworm-backports-sloppy main non-free non-free-firmware contrib
-deb http://mirrors.ustc.edu.cn/debian-security bookworm-security main non-free non-free-firmware contrib

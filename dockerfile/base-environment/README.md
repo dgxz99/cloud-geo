@@ -22,13 +22,21 @@ from processing.core.ProcessingConfig import ProcessingConfig, Setting
 
 # 实例化QGIS应用对象
 qgs = QgsApplication([], False)
+
 # 创建otb配置对象
-otb_setting = Setting(
-ProcessingConfig.tr('General'), 'OTB_FOLDER', ProcessingConfig.tr('OTB installation folder'), True)
+otb_setting = Setting(ProcessingConfig.tr('General'), 'OTB_FOLDER', ProcessingConfig.tr('OTB installation folder'), True)
 # 指定otb的所在目录，容器内位于/opt/otb
-otb_setting.value = "/opt/otb"
+otb_setting.value = '/opt/otb'
+
+# 创建otb应用程序配置对象
+otb_app_setting = Setting(ProcessingConfig.tr('General'), 'OTB_APP_FOLDER', ProcessingConfig.tr('OTB application folder'), True)
+# 指定otb应用目录，容器内位于/opt/otb/lib/otb/applications
+otb_app_setting.value = '/opt/otb/lib/otb/applications'
+
 # 加载otb配置到QGIS Processing
 ProcessingConfig().addSetting(otb_setting)
+ProcessingConfig().addSetting(otb_app_setting)
+
 # 初始化Processing
 processing.Processing().initialize()
 

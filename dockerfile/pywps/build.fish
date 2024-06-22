@@ -1,4 +1,14 @@
 #!/bin/fish
+
+# 接收版本号参数
+set image_version $argv[1]
+
+if test -z $image_version
+    echo 请指定版本号！
+    exit
+end
+
+# 清理Python缓存
 echo 删除缓存...
 set cache_list (find ../../pywps-pyqgis/src -type d -name __pycache__)
 for cache_dir in $cache_list
@@ -6,13 +16,19 @@ for cache_dir in $cache_list
     echo 已删除缓存：$cache_dir
 end
 
+# 打包代码
 echo 正在打包代码...
 tar -czvf src.tar.gz -C ../../pywps-pyqgis/src .
-tar -czvf data.tar.gz -C ../../pywps-pyqgis templates output_map_rule.json process_WPS2.0_description_json pywps.cfg requirements.txt
+tar -czvf data.tar.gz -C ../../pywps-pyqgis output_map_rule.json pywps.cfg requirements.txt
 
+# 构建Docker镜像
+set image_name swsk33/distribute-geoprocessing-pywps-pyqgis
 echo 正在构建镜像...
-docker build -f Dockerfile -t pywps-pyqgis:1.0.0 .
+docker build --network host --build-arg ALL_PROXY="http://127.0.0.1:7500" -f Dockerfile -t $image_name:$image_version .
+echo 创建latest tag...
+docker tag $image_name:$image_version $image_name
 
+# 清理
 echo 清理打包...
 rm *.tar.gz
 
