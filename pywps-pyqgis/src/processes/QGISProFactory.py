@@ -56,7 +56,7 @@ class QGISProcFactory:
 						if str(item.get("default")) == "True":
 							literal_data_domain = item
 
-				param_info["data_type"] = literal_data_domain["DataType"]["content"]
+				param_info["data_type"] = "string"
 				param_info["uoms"] = literal_data_domain.get("UOM")
 
 				if is_input:

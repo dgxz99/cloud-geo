@@ -4,11 +4,85 @@ import mimetypes
 import re
 import sys
 import processing
-from qgis.core import *
+from context.qgis import get_qgis
 from algorithm_init.alg_wps2.algorithm import AlgorithmWPS, LiteralData, BoundingBoxData, ComplexData, Format
 
-with open('output_map_rule.json', 'r', encoding='utf8') as f:
-	output_map = json.load(f)
+# with open('output_map_rule.json', 'r', encoding='utf8') as f:
+# 	output_map = json.load(f)
+
+output_map = {
+	"QgsProcessingOutputBoolean": {"wps_type": "LiteralOutput", "data_type": "boolean"},
+	"QgsProcessingOutputNumber": {"wps_type": "LiteralOutput", "data_type": "float"},
+	"QgsProcessingOutputFile": {"wps_type": "ComplexOutput", "data_type": "geographicData", "supported_formats": ["text/csv", "text/html"]},
+	"QgsProcessingOutputFolder": {"wps_type": "LiteralOutput", "data_type": "string"},
+	"QgsProcessingOutputHtml": {"wps_type": "ComplexOutput", "data_type": "geographicData", "supported_formats": ["text/html"]},
+	"QgsProcessingOutputLayerDefinition": {},
+	"QgsProcessingOutputMapLayer": {"wps_type": "ComplexOutput", "data_type": "geographicData", "supported_formats": ["image/tiff", "application/zip"]},
+	"QgsProcessingOutputMultipleLayers": {"wps_type": "ComplexOutput", "data_type": "geographicData", "supported_formats": ["image/tiff", "application/zip"]},
+	"QgsProcessingOutputPointCloudLayer": {},
+	"QgsProcessingOutputRasterLayer": {"wps_type": "ComplexOutput", "data_type": "raster", "supported_formats": ["image/tiff"]},
+	"QgsProcessingOutputString": {"wps_type": "LiteralOutput", "data_type": "string"},
+	"QgsProcessingOutputVectorLayer": {"wps_type": "ComplexOutput", "data_type": "vector", "supported_formats": ["application/zip"]},
+	"QgsProcessingOutputVectorTileLayer": {}
+}
+
+literal_type_map = {
+	"maptheme": {"wps_type": "LiteralData", "data_type": "string"},
+	"coordinateoperation": {"wps_type": "LiteralData", "data_type": "string"},
+	"rasterDestination": {"wps_type": "LiteralData", "data_type": "string"},
+	"number": {"wps_type": "LiteralData", "data_type": "float"},
+	"raster_calc_expression": {"wps_type": "LiteralData", "data_type": "string"},
+	"vectortilewriterlayers": {"wps_type": "LiteralData", "data_type": "string"},
+	"aggregates": {"wps_type": "LiteralData", "data_type": "string"},
+	"extent": {"wps_type": "LiteralData", "data_type": "string"},
+	"enum": {"wps_type": "LiteralData", "data_type": "int"},
+	"expression": {"wps_type": "LiteralData", "data_type": "string"},
+	"crs": {"wps_type": "LiteralData", "data_type": "string"},
+	"matrix": {"wps_type": "LiteralData", "data_type": "string"},
+	"distance": {"wps_type": "LiteralData", "data_type": "float"},
+	"databaseschema": {"wps_type": "LiteralData", "data_type": "string"},
+	"boolean": {"wps_type": "LiteralData", "data_type": "boolean"},
+	"meshdatasettime": {"wps_type": "LiteralData", "data_type": "string"},
+	"idw_interpolation_data": {"wps_type": "LiteralData", "data_type": "string"},
+	"databasetable": {"wps_type": "LiteralData", "data_type": "string"},
+	"fields_mapping": {"wps_type": "LiteralData", "data_type": "string"},
+	"OTBParameterChoice": {"wps_type": "LiteralData", "data_type": "string"},
+	"meshdatasetgroups": {"wps_type": "LiteralData", "data_type": "string"},
+	"range": {"wps_type": "LiteralData", "data_type": "string"},
+	"providerconnection": {"wps_type": "LiteralData", "data_type": "string"},
+	"multilayer": {"wps_type": "LiteralData", "data_type": "string"},
+	"duration": {"wps_type": "LiteralData", "data_type": "string"},
+	"layout": {"wps_type": "LiteralData", "data_type": "string"},
+	"file": {"wps_type": "LiteralData", "data_type": "string"},
+	"tininputlayers": {"wps_type": "LiteralData", "data_type": "string"},
+	"dxflayers": {"wps_type": "LiteralData", "data_type": "string"},
+	"scale": {"wps_type": "LiteralData", "data_type": "string"},
+	"vectorDestination": {"wps_type": "LiteralData", "data_type": "string"},
+	"folderDestination": {"wps_type": "LiteralData", "data_type": "string"},
+	"string": {"wps_type": "LiteralData", "data_type": "string"},
+	"fileDestination": {"wps_type": "LiteralData", "data_type": "string"},
+	"field": {"wps_type": "LiteralData", "data_type": "string"},
+	"layoutitem": {"wps_type": "LiteralData", "data_type": "string"},
+	"band": {"wps_type": "LiteralData", "data_type": "int"},
+	"relief_colors": {"wps_type": "LiteralData", "data_type": "string"},
+	"execute_sql": {"wps_type": "LiteralData", "data_type": "string"},
+	"color": {"wps_type": "LiteralData", "data_type": "string"},
+	"point": {"wps_type": "LiteralData", "data_type": "string"}
+}
+
+complex_type_map = {
+	"layer": {"wps_type": "ComplexData", "data_type": "geographicData"},
+	"mesh": {"wps_type": "ComplexData", "data_type": "geographicData"},
+	"rasterDestination": {"wps_type": "ComplexData", "data_type": "raster"},
+	"source": {"wps_type": "ComplexData", "data_type": "vector"},
+	"fileDestination": {"wps_type": "ComplexData", "data_type": "raster"},
+	"multilayer": {"wps_type": "ComplexData", "data_type": "geographicData"},
+	"sink": {"wps_type": "ComplexData", "data_type": "vector"},
+	"file": {"wps_type": "ComplexData", "data_type": "geographicData"},
+	"raster": {"wps_type": "ComplexData", "data_type": "raster"},
+	"vector": {"wps_type": "ComplexData", "data_type": "vector"},
+	"vectorDestination": {"wps_type": "ComplexData", "data_type": "vector"}
+}
 
 
 def get_algorithm_help(alg):
@@ -60,7 +134,7 @@ def process_algorithm_info(alg_info):
 	# 添加默认值信息和是否必要参数
 
 	# 创建对应的算子对象
-	alg = QgsApplication.processingRegistry().createAlgorithmById(alg_dict.get("Identifier"))
+	alg = get_qgis().processingRegistry().createAlgorithmById(alg_dict.get("Identifier"))
 
 	alg_dict["Inputs"] = []
 	# 获取算子的输入参数
@@ -110,13 +184,14 @@ def process_algorithm_info(alg_info):
 					unique_mime_types.add(mime_type)
 			if unique_mime_types:
 				input_param_dict["wps_type"] = "ComplexInput"
+				input_param_dict["data_type"] = complex_type_map[param.type()]["data_type"]
 				input_param_dict["supported_formats"] = list(unique_mime_types)
 			else:
 				input_param_dict["wps_type"] = "LiteralInput"
-				input_param_dict["data_type"] = "string"
+				input_param_dict["data_type"] = literal_type_map[param.type()]["data_type"]
 		except:
 			input_param_dict["wps_type"] = "LiteralInput"
-			input_param_dict["data_type"] = "string"
+			input_param_dict["data_type"] = literal_type_map[param.type()]["data_type"]
 
 		alg_dict["Inputs"].append(input_param_dict)
 
@@ -135,6 +210,7 @@ def process_algorithm_info(alg_info):
 		if output_param_dict["wps_type"] == 'LiteralOutput':
 			output_param_dict["data_type"] = output_map.get(type(param).__name__).get("data_type")
 		elif output_param_dict["wps_type"] == 'ComplexOutput':
+			output_param_dict["data_type"] = output_map.get(type(param).__name__).get("data_type")
 			output_param_dict["supported_formats"] = output_map.get(type(param).__name__).get("supported_formats")
 		alg_dict["Outputs"].append(output_param_dict)
 

@@ -21,14 +21,21 @@ def get_qgis():
 		get_qgis.qgs = QgsApplication([], False)
 		get_qgis.qgs.initQgis()
 
-		# 加载OTB算子
-		otb_setting = Setting(
-			ProcessingConfig.tr('General'),
-			'OTB_FOLDER',
-			ProcessingConfig.tr('OTB installation folder'), True)
-		otb_setting.value = r"D:\Program Files\QGIS 3.28.13\OTB"
-		ProcessingConfig().addSetting(otb_setting)
+		# 创建otb配置对象
+		otb_setting = Setting(ProcessingConfig.tr('General'), 'OTB_FOLDER', ProcessingConfig.tr('OTB installation folder'), True)
+		# 指定otb的所在目录
+		otb_setting.value = r'D:\Program Files\QGIS 3.28.13\OTB'
 
+		# 创建otb应用程序配置对象
+		otb_app_setting = Setting(ProcessingConfig.tr('General'), 'OTB_APP_FOLDER', ProcessingConfig.tr('OTB application folder'), True)
+		# 指定otb应用目录
+		otb_app_setting.value = r'D:\Program Files\QGIS 3.28.13\OTB\lib\otb\applications'
+
+		# 加载otb配置到QGIS Processing
+		ProcessingConfig().addSetting(otb_setting)
+		ProcessingConfig().addSetting(otb_app_setting)
+
+		# 初始化Processing
 		processing.Processing().initialize()
 		print("Algorithm initialized!")
 	return get_qgis.qgs
