@@ -12,6 +12,7 @@ def run_job(job_store_strategy, data, job_id):
 		data: 请求体
 		job_id: job-id
 	"""
+	response = None
 	try:
 		response = requests.post('http://127.0.0.1:5000/jobs', json=data, timeout=36000).json()
 		job_data = {
@@ -30,6 +31,7 @@ def run_job(job_store_strategy, data, job_id):
 
 	# 将任务状态和结果存储起来
 	job_store_strategy.save_job_timed(job_id, json.dumps(job_data))
+	return response
 
 
 def cleanup_thread_func(job_store_strategy):

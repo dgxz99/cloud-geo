@@ -28,6 +28,9 @@ class InMemoryJobStore(JobStoreStrategy):
 	def get_job(self, job_id):
 		return self.job_store.get(job_id)
 
+	def del_job(self, job_id):
+		del self.job_store[job_id]
+
 	def cleanup_expired_jobs(self):
 		current_time = time.time()
 		expired_jobs = [job_id for job_id, job_data in self.job_store.items() if current_time - job_data['timestamp'] > 24 * 60 * 60]
@@ -49,6 +52,9 @@ class RedisJobStore(JobStoreStrategy):
 	def get_job(self, job_id):
 		job_data = self.redis_client.get(job_id)
 		return json.loads(job_data) if job_data else None
+
+	def del_job(self, job_id):
+		self.redis_client.delete(job_id)
 
 	def cleanup_expired_jobs(self):
 		# Redis 会自动处理过期数据，所以这里可以是空实现

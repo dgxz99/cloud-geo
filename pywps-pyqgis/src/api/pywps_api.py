@@ -58,13 +58,12 @@ def execute():
 			"timestamp": time.time()
 		}
 		# 异步执行算子
-		executor.submit(run_job, job_store_strategy, data, job_id)
+		future = executor.submit(run_job, job_store_strategy, data, job_id)
 		job_store_strategy.save_job(job_id, json.dumps(job_data))
 		stored_job_data = json.loads(job_store_strategy.get_job(job_id))
+		ret = future.result()
+		job_store_strategy.del_job(ret['jobId'])
 		del stored_job_data['timestamp']
-		if stored_job_data['result']:
-			del stored_job_data['result']['jobId']
-			del stored_job_data['result']['status']
 		return json.dumps(stored_job_data)
 
 	provenance = None
@@ -75,7 +74,7 @@ def execute():
 				provenance = json.loads(val.get('data').replace("'", "\""))
 				break
 
-		response = json.dumps({
+		response = {
 			'jobId': job_id,
 			'status': wps_resp['status']['status'],
 			'completionTime': provenance['estimated_completion'],
@@ -83,24 +82,40 @@ def execute():
 			'percentCompleted': wps_resp['status']['percent_done'],
 			'message': wps_resp['status']['message'],
 			'output': provenance['result']
-		})
+		}
 	except:
-		response = json.dumps({
+		response = {
 			'jobId': job_id,
 			'status': wps_resp['status']['status'],
 			'percentCompleted': wps_resp['status']['percent_done'],
 			'message': wps_resp['status']['message'],
-		})
+		}
 
-	return response
+	job_store_strategy.save_job(job_id, json.dumps({'result': response}))
+	return json.dumps(response)
 
 
 @pywps_blue.route('/jobs/<job_id>', methods=['GET'])
 def get_job_status(job_id):
-	job_data = json.loads(job_store_strategy.get_job(job_id))
-	if job_data:
+	job_json = job_store_strategy.get_job(job_id)
+	if job_json:
+		job_data = json.loads(job_json)
 		del job_data['timestamp']
-		return flask.jsonify(job_data)
+		if job_data.get('result'):
+			del job_data['result']['jobId']
+			del job_data['result']['status']
+		return json.dumps(job_data)
+	else:
+		return flask.jsonify({"error": "Job not found"}), 404
+
+
+@pywps_blue.route('/results/<job_id>', methods=['GET'])
+def get_job_results(job_id):
+	job_json = job_store_strategy.get_job(job_id)
+	if job_json:
+		ret = json.loads(job_json)
+		if ret['result']:
+			return json.dumps(ret['result'])
 	else:
 		return flask.jsonify({"error": "Job not found"}), 404
 
