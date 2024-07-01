@@ -92,6 +92,8 @@ def execute():
 		}
 
 	job_store_strategy.save_job(job_id, json.dumps({'result': response}))
+	provenance["_id"] = job_id
+	MongoDB().add_one('provenance', provenance)
 	return json.dumps(response)
 
 
@@ -143,8 +145,15 @@ def describe_process(identifier):
 	alg = MongoDB().find_one("algorithms", {"Identifier": identifier})
 	if alg and '_id' in alg:
 		alg['_id'] = str(alg['_id'])
-
 	return json.dumps(alg)
+
+
+@pywps_blue.route('/provenances/<job_id>', methods=['GET'])
+def get_job_provenances(job_id):
+	provenance = MongoDB().find_one("provenance", {"_id": job_id})
+	if not provenance:
+		return flask.jsonify({"error": "Job not found"}), 404
+	return json.dumps(provenance)
 
 
 @pywps_blue.route('/outputs/<path:filename>', methods=['GET'])
