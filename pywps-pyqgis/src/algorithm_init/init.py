@@ -10,8 +10,8 @@ def init_database():
 	# 每次初始化时删除已有的数据，重新初始化数据
 	if len(mongo.find_all("algorithms")) != 0:
 		print("删除算子数量为：", mongo.delete_all_documents("algorithms"), mongo.delete_all_documents("algorithms_qgs"))
-
-	for alg in get_qgis().processingRegistry().algorithms():
+	alg_list = get_qgis().processingRegistry().algorithms()
+	for alg in alg_list:
 		try:
 			# 存储qgis算子原本描述信息
 			alg_help = get_algorithm_help(alg)
@@ -22,6 +22,4 @@ def init_database():
 		except Exception as e:
 			print(alg.id(), e)
 
-	print("Database initialized!")
-	# 关闭数据库连接
-	mongo.close()
+	print(f"Database initialized! A total of algorithm {len(alg_list)}!")

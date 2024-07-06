@@ -24,12 +24,12 @@ def get_qgis():
 		# 创建otb配置对象
 		otb_setting = Setting(ProcessingConfig.tr('General'), 'OTB_FOLDER', ProcessingConfig.tr('OTB installation folder'), True)
 		# 指定otb的所在目录
-		otb_setting.value = r'D:\Program Files\QGIS 3.28.13\OTB'
+		otb_setting.value = r'D:\OTB'
 
 		# 创建otb应用程序配置对象
 		otb_app_setting = Setting(ProcessingConfig.tr('General'), 'OTB_APP_FOLDER', ProcessingConfig.tr('OTB application folder'), True)
 		# 指定otb应用目录
-		otb_app_setting.value = r'D:\Program Files\QGIS 3.28.13\OTB\lib\otb\applications'
+		otb_app_setting.value = r'D:\OTB\lib\otb\applications'
 
 		# 加载otb配置到QGIS Processing
 		ProcessingConfig().addSetting(otb_setting)

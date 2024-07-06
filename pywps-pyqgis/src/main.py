@@ -5,6 +5,8 @@ import flask
 from utils.consul_service import register_consul, deregister_consul
 from api.pywps_api import pywps_blue, job_store_strategy
 from api.health_api import health_blue
+from api.file_api import file_blue
+from api.provenance_api import provenance_blue
 from context.config import get_config
 from algorithm_init.init import init_database
 from utils.job_task import start_cleanup_thread
@@ -16,6 +18,8 @@ def create_app():
 	# 注册蓝图
 	app.register_blueprint(pywps_blue)
 	app.register_blueprint(health_blue)
+	app.register_blueprint(file_blue)
+	app.register_blueprint(provenance_blue)
 
 	return app
 

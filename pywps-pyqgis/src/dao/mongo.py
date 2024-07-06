@@ -42,6 +42,10 @@ class MongoDB:
 		collection = self.db[collection_name]
 		return collection.find_one(query)
 
+	def find_many(self, collection_name, query):
+		collection = self.db[collection_name]
+		return list(collection.find(query))
+
 	def find_all(self, collection_name):
 		collection = self.db[collection_name]
 		return list(collection.find())
