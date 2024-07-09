@@ -9,6 +9,7 @@ RUN apt update \
 	&& apt install -y python3-pip \
 	&& apt clean \
 	&& rm -rf /var/lib/apt/lists/* \
+	&& pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple \
 	&& pip install -r requirements.txt
 # 端口
 EXPOSE 5000

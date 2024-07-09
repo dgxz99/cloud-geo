@@ -24,7 +24,7 @@ tar -czvf data.tar.gz -C ../../pywps-pyqgis output_map_rule.json pywps.cfg requi
 # 构建Docker镜像
 set image_name swsk33/distribute-geoprocessing-pywps-pyqgis
 echo 正在构建镜像...
-docker build --network host --build-arg ALL_PROXY="http://127.0.0.1:7500" -f Dockerfile -t $image_name:$image_version .
+docker build -f Dockerfile -t $image_name:$image_version .
 echo 创建latest tag...
 docker tag $image_name:$image_version $image_name
 
