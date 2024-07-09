@@ -7,6 +7,7 @@ import flask
 from concurrent.futures import ThreadPoolExecutor
 from dao.mongo import MongoDB
 from pywps import Service, configuration
+from context.config import get_config_file_path
 
 from processes.QGISProFactory import QGISProcFactory
 from strategy.job_store.JobStoreContext import JobStoreContext
@@ -24,7 +25,7 @@ for _dir in dir_list:
 		print(f'{_dir} does not exist! Created it!')
 
 # PyWPS service实例
-service = Service(processes, ['pywps.cfg'])
+service = Service(processes, [get_config_file_path()])
 # 读取部署模式
 deploy_mode = configuration.get_config_value('deploy', 'mode')
 job_store_strategy = JobStoreContext(deploy_mode).job_store_strategy()
@@ -138,4 +139,3 @@ def describe_process(identifier):
 	if alg and '_id' in alg:
 		alg['_id'] = str(alg['_id'])
 	return json.dumps(alg)
-
