@@ -55,7 +55,7 @@ def main(config_parameters):
 		start_cleanup_thread(job_store_strategy)
 
 	# 运行 Flask 应用
-	app.run()
+	app.run(host='0.0.0.0', port=5000)
 
 
 if __name__ == "__main__":
