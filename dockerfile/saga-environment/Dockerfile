@@ -40,4 +40,8 @@ RUN apt update \
 	&& apt autoremove -y \
 	&& apt clean \
 	&& rm -rf /saga-build /var/lib/apt/lists/*
+# 数据卷
+VOLUME ["/data"]
+# 工作目录
+WORKDIR /data
 CMD ["bash"]
