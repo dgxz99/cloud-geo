@@ -1,7 +1,7 @@
 import json
 import flask
 
-from dao.mongo import MongoDB
+from app.dao.mongo import MongoDB
 
 # 创建flask蓝图
 provenance_blue = flask.Blueprint('provenance', __name__)

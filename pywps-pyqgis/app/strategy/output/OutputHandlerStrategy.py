@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 
 import requests
 
-from strategy.output.OutputHandlerParams import OutputHandlerParams
+from app.strategy.output.OutputHandlerParams import OutputHandlerParams
 
 
 class OutputHandlerStrategy(ABC):

@@ -1,4 +1,4 @@
-from context.config import get_config
+from app.context.config import get_config
 from pymongo import MongoClient, errors
 from typing import List, Dict
 

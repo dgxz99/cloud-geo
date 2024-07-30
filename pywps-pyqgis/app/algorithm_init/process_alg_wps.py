@@ -1,14 +1,11 @@
 import io
-import json
 import mimetypes
 import re
 import sys
 import processing
-from context.qgis import get_qgis
-from algorithm_init.alg_wps2.algorithm import AlgorithmWPS, LiteralData, BoundingBoxData, ComplexData, Format
+from app.context.qgis import get_qgis
+from app.algorithm_init.alg_wps2.algorithm import AlgorithmWPS, LiteralData, BoundingBoxData, ComplexData, Format
 
-# with open('output_map_rule.json', 'r', encoding='utf8') as f:
-# 	output_map = json.load(f)
 
 output_map = {
 	"QgsProcessingOutputBoolean": {"wps_type": "LiteralOutput", "data_type": "boolean"},

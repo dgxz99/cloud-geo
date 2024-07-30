@@ -2,8 +2,8 @@ import os
 import shutil
 import uuid
 
-from strategy.output.OutputHandlerParams import OutputHandlerParams
-from strategy.output.OutputHandlerStrategy import OutputHandlerStrategy
+from app.strategy.output.OutputHandlerParams import OutputHandlerParams
+from app.strategy.output.OutputHandlerStrategy import OutputHandlerStrategy
 
 
 class FileOutputHandlerStrategy(OutputHandlerStrategy):

@@ -9,9 +9,9 @@ import mimetypes
 import re
 
 from datetime import datetime, timedelta
-from context.qgis import get_qgis
-from strategy.output.OutputHandlerContext import OutputHandlerContext
-from strategy.output.OutputHandlerParams import OutputHandlerParams
+from app.context.qgis import get_qgis
+from app.strategy.output.OutputHandlerContext import OutputHandlerContext
+from app.strategy.output.OutputHandlerParams import OutputHandlerParams
 from pywps import Process, LiteralInput, ComplexInput, LiteralOutput
 from pywps.configuration import get_config_value
 from processing.core.Processing import processing

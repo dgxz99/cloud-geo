@@ -5,13 +5,13 @@ import uuid
 import flask
 
 from concurrent.futures import ThreadPoolExecutor
-from dao.mongo import MongoDB
+from app.dao.mongo import MongoDB
 from pywps import Service, configuration
-from context.config import get_config_file_path
+from app.context.config import get_config_file_path
 
-from processes.QGISProFactory import QGISProcFactory
-from strategy.job_store.JobStoreContext import JobStoreContext
-from utils.job_task import run_job
+from app.processes.QGISProFactory import QGISProcFactory
+from app.strategy.job_store.JobStoreContext import JobStoreContext
+from app.utils.job_task import run_job
 
 # 算子初始化
 processes = QGISProcFactory().init_algorithms()

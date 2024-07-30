@@ -1,7 +1,7 @@
 import time
 import json
 
-from dao.RedisClient import RedisClient
+from app.dao.RedisClient import RedisClient
 
 
 class JobStoreStrategy:

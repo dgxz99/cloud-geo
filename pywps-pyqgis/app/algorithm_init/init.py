@@ -1,7 +1,7 @@
-from dao.mongo import MongoDB
-from algorithm_init.process_alg_wps import get_algorithm_help, process_algorithm_info, convert_wps
+from app.dao.mongo import MongoDB
+from app.algorithm_init.process_alg_wps import get_algorithm_help, process_algorithm_info, convert_wps
 
-from context.qgis import get_qgis
+from app.context.qgis import get_qgis
 
 
 def init_database():

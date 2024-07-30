@@ -1,9 +1,9 @@
 import os
 
-from strategy.output.OutputHandlerParams import OutputHandlerParams
-from strategy.output.TextOutputHandlerStrategy import TextOutputHandlerStrategy
-from strategy.output.FileOutputHandlerStrategy import FileOutputHandlerStrategy
-from strategy.output.DirectoryOutputHandlerStrategy import DirectoryOutputHandlerStrategy
+from app.strategy.output.OutputHandlerParams import OutputHandlerParams
+from app.strategy.output.TextOutputHandlerStrategy import TextOutputHandlerStrategy
+from app.strategy.output.FileOutputHandlerStrategy import FileOutputHandlerStrategy
+from app.strategy.output.DirectoryOutputHandlerStrategy import DirectoryOutputHandlerStrategy
 
 
 class OutputHandlerContext:
