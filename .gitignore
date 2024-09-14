@@ -38,3 +38,5 @@
 /pywps-pyqgis/**/json_datas/
 /pywps-pyqgis/logs/
 /pywps-pyqgis/inputs/
+/**/workdir/
+/**/outputs/

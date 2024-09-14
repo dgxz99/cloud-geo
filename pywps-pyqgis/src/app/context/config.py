@@ -8,7 +8,7 @@ def get_config_file_path():
 	Returns:
 		配置文件绝对路径
 	"""
-	return os.path.abspath(os.path.join(os.getcwd(), 'pywps.cfg'))
+	return os.path.join(os.getcwd(), 'pywps.cfg')
 
 
 def get_config():

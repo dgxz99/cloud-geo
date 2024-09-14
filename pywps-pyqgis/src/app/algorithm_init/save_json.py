@@ -1,8 +1,8 @@
 import json
 import os.path
 
-from algorithm_init.process_alg_wps import get_algorithm_help, convert_wps, process_algorithm_info
-from context.qgis import get_qgis
+from .process_alg_wps import get_algorithm_help, convert_wps, process_algorithm_info
+from ..context.qgis import get_qgis
 
 
 def save_json():

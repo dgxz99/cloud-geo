@@ -3,4 +3,4 @@ py-consul
 pymongo
 redis
 pywps
-requests
+requests~=2.25.1
