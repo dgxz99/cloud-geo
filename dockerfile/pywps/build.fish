@@ -19,7 +19,7 @@ end
 # 打包代码
 echo 正在打包代码...
 tar -czvf src.tar.gz -C ../../pywps-pyqgis/src .
-tar -czvf data.tar.gz -C ../../pywps-pyqgis output_map_rule.json pywps.cfg requirements.txt
+tar -czvf data.tar.gz -C ../../pywps-pyqgis pywps.cfg requirements.txt uwsgi.ini
 
 # 构建Docker镜像
 set image_name swsk33/distribute-geoprocessing-pywps-pyqgis
