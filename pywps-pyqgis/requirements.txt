@@ -4,4 +4,3 @@ pymongo
 redis
 pywps
 requests~=2.25.1
-uWSGI

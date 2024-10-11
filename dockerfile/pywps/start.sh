@@ -1,17 +1,9 @@
 #!/bin/bash
 
-# 拼接 pyargv 参数
-PYARGV="${UWSGI_WORK_DIR}"
+# 将系统的gdal提前，默认使用系统的gdal
+export PATH=/usr/bin:$PATH
 
-# 启动uWSGI服务
-uwsgi --http $UWSGI_HTTP \
-      --chdir $UWSGI_CHDIR \
-      --wsgi-file $UWSGI_WSGI_FILE \
-      --callable $UWSGI_CALLABLE \
-      --processes $UWSGI_PROCESSES \
-      --master $UWSGI_MASTER \
-      --threads $UWSGI_THREADS \
-      --daemonize $UWSGI_DAEMONIZE \
-      --pidfile $UWSGI_PIDFILE \
-      --buffer-size $UWSGI_BUFFER_SIZE \
-      --pyargv "$PYARGV"
+# 启动 uWSGI 服务
+uwsgi --ini /workdir/uwsgi.ini
+# 查看输出日志
+tail -f /workdir/logs/uwsgi.log

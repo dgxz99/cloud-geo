@@ -22,4 +22,5 @@ def init_database():
 		except Exception as e:
 			print(alg.id(), e)
 
+	mongo.close()
 	print(f"Database initialized! A total of algorithm {len(alg_list)}!")

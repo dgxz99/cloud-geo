@@ -33,7 +33,7 @@ def create_app(config_parameters=None):
         register_consul(service_name, service_ip, service_port)
         atexit.register(deregister_consul, service_name, service_ip, service_port)
 
-    # register blueprint
+    # 注册blueprint
     config_blueprint(app)
 
     # 开启清理线程

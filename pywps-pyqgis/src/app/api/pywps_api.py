@@ -86,7 +86,8 @@ def execute():
 
 	job_store_strategy.save_job(job_id, json.dumps({'result': response}))
 	provenance["_id"] = job_id
-	MongoDB().add_one('provenance', provenance)
+	mongo = MongoDB()
+	mongo.add_one('provenance', provenance)
 	return json.dumps(response)
 
 
@@ -135,7 +136,9 @@ def get_capabilities():
 
 @pywps_blue.route('/processes/<path:identifier>', methods=['GET'])
 def describe_process(identifier):
-	alg = MongoDB().find_one("algorithms", {"Identifier": identifier})
+	mongo = MongoDB()
+	alg = mongo.find_one("algorithms", {"Identifier": identifier})
 	if alg and '_id' in alg:
 		alg['_id'] = str(alg['_id'])
+	mongo.close()
 	return json.dumps(alg)
