@@ -4,7 +4,6 @@ ADD install-qgis-ubuntu.sh /
 ADD pre-start.sh /
 # 环境变量
 ENV PYTHONPATH=/usr/share/qgis/python/plugins
-ENV PATH=/opt/otb/bin:$PATH
 ENV DISPLAY=:99
 # 配置环境
 RUN apt update \
@@ -19,7 +18,7 @@ RUN apt update \
 	&& apt update \
 	&& apt full-upgrade -y \
 	# 安装相关工具和依赖
-	&& apt install -y gnupg software-properties-common vim wget xvfb saga \
+	&& apt install -y gnupg software-properties-common vim wget xvfb saga file \
 	# 添加QGIS软件源
 	&& wget -O /etc/apt/keyrings/qgis-archive-keyring.gpg https://download.qgis.org/downloads/qgis-archive-keyring.gpg \
 	&& echo "Types: deb" > /etc/apt/sources.list.d/qgis.sources \
@@ -34,8 +33,10 @@ RUN apt update \
 	&& /install-qgis-ubuntu.sh \
 	# 下载OTB
 	&& mkdir -p /opt/otb \
-	&& wget -O /otb.tar.gz https://www.orfeo-toolbox.org/packages/OTB-9.0.0-Linux.tar.gz \
+	&& wget -O /otb.tar.gz https://www.orfeo-toolbox.org/packages/OTB-9.1.0-Linux.tar.gz \
+	# 安装OTB
 	&& tar -xzvf /otb.tar.gz -C /opt/otb \
+	&& source /opt/otb/otbenv.profile \
 	# 清理
 	&& apt autoremove -y \
 	&& apt clean \

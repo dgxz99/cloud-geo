@@ -1,7 +1,3 @@
-# from context.qgis import import_qgis_plugin
-#
-# import_qgis_plugin()
-
 import uuid
 import zipfile
 import os
@@ -23,7 +19,7 @@ class QGISProcess(Process):
 	def __init__(self, identifier, title, abstract, inputs, outputs):
 		outputs.append(LiteralOutput('provenance', 'provenance', data_type='string'))
 		super(QGISProcess, self).__init__(
-			handler=self._handler,
+			handler=self.__handler,
 			identifier=str(identifier),
 			title=str(title),
 			abstract=str(abstract),
@@ -35,7 +31,7 @@ class QGISProcess(Process):
 		)
 		self.provenance = {}
 
-	def _handler(self, request, response):
+	def __handler(self, request, response):
 		# 显式地调用ogr.UseExceptions()来设置异常处理的方式，防止终端输出FutureWarning
 		from osgeo import ogr
 		ogr.UseExceptions()
@@ -55,7 +51,7 @@ class QGISProcess(Process):
 			alg = get_qgis().processingRegistry().createAlgorithmById(self.identifier)
 
 			for param in self.inputs:
-				if 'OUTPUT' in param.identifier:
+				if self.__is_output_param(alg, param.identifier):
 					parameter = next(filter(lambda para: para.name() == param.identifier, alg.parameterDefinitions()), None)
 					output_file_name = f"{self.identifier.replace(':', '-')}-{param.identifier.lower()}-{uuid.uuid4()}"
 					if isinstance(param, ComplexInput):
@@ -79,9 +75,9 @@ class QGISProcess(Process):
 					continue
 
 				if isinstance(param, ComplexInput):
-					self._handle_complex_input(algorithm_params, param, input_data, temp_dir)
+					self.__handle_complex_input(algorithm_params, param, input_data, temp_dir)
 				elif isinstance(param, LiteralInput):
-					self._handle_literal_input(algorithm_params, param, input_data)
+					self.__handle_literal_input(algorithm_params, param, input_data)
 			# 模拟算子运行出错
 			# print(1/0)
 			# 打印参数信息
@@ -124,7 +120,22 @@ class QGISProcess(Process):
 		finally:
 			response.outputs["provenance"].data = self.provenance
 
-	def _handle_literal_input(self, algorithm_params, param, input_data):
+	@staticmethod
+	def __is_output_param(alg, param_name):
+		"""
+		判断当前参数是否是输出参数
+		Args:
+			alg: 算子对象
+			param_name: 当前参数名称（str）
+		Returns: True or False
+		"""
+		for param in alg.destinationParameterDefinitions():
+			if param.name() == param_name:
+				return True
+		return False
+
+	@staticmethod
+	def __handle_literal_input(algorithm_params, param, input_data):
 		"""
 		处理LiteralInput参数
 		Args:
@@ -134,7 +145,7 @@ class QGISProcess(Process):
 		"""
 		algorithm_params[param.identifier] = input_data[0].data
 
-	def _handle_complex_input(self, algorithm_params, param, input_data, temp_dir):
+	def __handle_complex_input(self, algorithm_params, param, input_data, temp_dir):
 		"""
 		处理ComplexInput参数
 		Args:
@@ -155,7 +166,7 @@ class QGISProcess(Process):
 		# 根据输入参数的最大出现次数不同实现相应的处理
 		if param.max_occurs == 1:
 			if param_files[0].endswith(".zip"):
-				result_files = self.find_shp_files(param_files[0], temp_dir)
+				result_files = self.__find_shp_files(param_files[0], temp_dir)
 				algorithm_params[param.identifier] = result_files[0]
 			else:
 				algorithm_params[param.identifier] = param_files[0]
@@ -163,13 +174,13 @@ class QGISProcess(Process):
 			algorithm_params[param.identifier] = []
 			for param_file in param_files:
 				if param_file.endswith(".zip"):
-					result_files = self.find_shp_files(param_file, temp_dir)
+					result_files = self.__find_shp_files(param_file, temp_dir)
 					algorithm_params[param.identifier].extend(result_files)
 				else:
 					algorithm_params[param.identifier].append(param_file)
 
 	@staticmethod
-	def find_shp_files(zip_file, directory):
+	def __find_shp_files(zip_file, directory):
 		"""
 		获取压缩包中'.shp' 扩展名的文件路径
 		Args:

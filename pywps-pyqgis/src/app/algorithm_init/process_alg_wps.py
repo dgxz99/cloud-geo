@@ -161,7 +161,7 @@ def process_algorithm_info(alg_info):
 			input_param_dict["max_occurs"] = 10  # todo:考虑到内存原因，仅设置为10
 
 		# OUTPUT参数不需要用户输入，系统指定，最后需要返回该URL
-		if 'OUTPUT' in param.name():
+		if param in alg.destinationParameterDefinitions():
 			input_param_dict["min_occurs"] = 0
 
 		# 保存算子支持的文件格式

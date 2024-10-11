@@ -13,6 +13,14 @@ import processing
 from qgis.core import *
 from processing.core.ProcessingConfig import ProcessingConfig, Setting
 
+import platform
+if platform.system() == 'Windows':
+	OTB_PATH = r'D:\Widgets\OTB'
+	OTB_APP_PATH = r'D:\Widgets\OTB\lib\otb\applications'
+else:
+	OTB_PATH = r'/opt/otb'
+	OTB_APP_PATH = r'/opt/otb/lib/otb/applications'
+
 
 # 获取QGIS全局对象
 def get_qgis():
@@ -24,12 +32,12 @@ def get_qgis():
 		# 创建otb配置对象
 		otb_setting = Setting(ProcessingConfig.tr('General'), 'OTB_FOLDER', ProcessingConfig.tr('OTB installation folder'), True)
 		# 指定otb的所在目录
-		otb_setting.value = r'D:\OTB'
+		otb_setting.value = OTB_PATH
 
 		# 创建otb应用程序配置对象
 		otb_app_setting = Setting(ProcessingConfig.tr('General'), 'OTB_APP_FOLDER', ProcessingConfig.tr('OTB application folder'), True)
 		# 指定otb应用目录
-		otb_app_setting.value = r'D:\OTB\lib\otb\applications'
+		otb_app_setting.value = OTB_APP_PATH
 
 		# 加载otb配置到QGIS Processing
 		ProcessingConfig().addSetting(otb_setting)
