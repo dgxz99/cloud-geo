@@ -9,7 +9,7 @@ from app.strategy.output.OutputHandlerStrategy import OutputHandlerStrategy
 class FileOutputHandlerStrategy(OutputHandlerStrategy):
 	def handle(self, params: OutputHandlerParams):
 		ext = os.path.splitext(params.output_data)[1][1:]  # 获取文件扩展名
-		if ext in ['shp', 'gpkg']:  # 矢量文件格式
+		if ext in ['shp', 'gpkg', 'sdat']:  # 这些文件格式做压缩处理
 			filename = f"{params.output_file_name}.zip"
 			file_path = os.path.join(params.output_dir, filename)
 			self.zip_folder(os.path.dirname(params.output_data), file_path)

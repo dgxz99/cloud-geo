@@ -63,6 +63,12 @@ class QGISProcess(Process):
 							ret_data = os.path.join(temp_dir, output_file_name, f"{output_file_name}.shp")
 						else:
 							ret_data = os.path.join(output_dir, f'{output_file_name}.{extensions[0]}')
+
+						# sdat文件打包
+						if extensions[0].lower() == 'sdat':
+							os.mkdir(os.path.join(temp_dir, output_file_name))
+							ret_data = os.path.join(temp_dir, output_file_name, f"{output_file_name}.sdat")
+
 						algorithm_params[param.identifier] = ret_data
 
 					# 针对于算子输出参数为目录的情况

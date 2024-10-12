@@ -36,7 +36,7 @@ RUN apt update \
 	&& wget -O /otb.tar.gz https://www.orfeo-toolbox.org/packages/OTB-9.1.0-Linux.tar.gz \
 	# 安装OTB
 	&& tar -xzvf /otb.tar.gz -C /opt/otb \
-	&& source /opt/otb/otbenv.profile \
+	&& bash -c "source /opt/otb/otbenv.profile" \
 	# 清理
 	&& apt autoremove -y \
 	&& apt clean \
