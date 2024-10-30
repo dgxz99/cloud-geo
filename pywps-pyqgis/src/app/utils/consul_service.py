@@ -1,12 +1,7 @@
-import configparser
-import os
 from consul import Consul
-from app.context.config import get_config_file_path
+from config import get_config
 
-config_path = get_config_file_path()
-config = configparser.ConfigParser()
-config.read(config_path)
-
+config = get_config()
 
 # Consul地址和端口
 consul_host = config.get("consul", "consul_ip")

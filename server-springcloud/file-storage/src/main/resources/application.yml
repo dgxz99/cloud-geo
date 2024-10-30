@@ -32,6 +32,6 @@ io:
           storage-method: "minio"
         minio:
           endpoint: "http://${MINIO_HOST:127.0.0.1}:${MINIO_PORT:9000}"
-          access-key: "${MINIO_ACCESS_KEY}"
-          secret-key: "${MINIO_SECRET_KEY}"
+          access-key: "${MINIO_ACCESS_KEY:admin}"
+          secret-key: "${MINIO_SECRET_KEY:12345678}"
           bucket-name: "${MINIO_BUCKET:wps-file}"

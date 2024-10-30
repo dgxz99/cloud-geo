@@ -5,7 +5,9 @@ from pywps import LiteralInput, LiteralOutput, ComplexInput, ComplexOutput, Form
 
 
 class QGISProcFactory:
-	algorithms = MongoDB().find_all("algorithms")
+	mongo = MongoDB()
+	algorithms = mongo.find_all("algorithms")
+	mongo.close()
 
 	@classmethod
 	def init_algorithms(cls):

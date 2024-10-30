@@ -4,10 +4,10 @@ import time
 import uuid
 import flask
 
+from config import get_config, get_config_file_path
 from concurrent.futures import ThreadPoolExecutor
 from app.dao.mongo import MongoDB
-from pywps import Service, configuration
-from app.context.config import get_config_file_path
+from pywps import Service
 
 from app.processes.QGISProFactory import QGISProcFactory
 from app.strategy.job_store.JobStoreContext import JobStoreContext
@@ -27,7 +27,8 @@ for _dir in dir_list:
 # PyWPS service实例
 service = Service(processes, [get_config_file_path()])
 # 读取部署模式
-deploy_mode = configuration.get_config_value('deploy', 'mode')
+config = get_config()
+deploy_mode = config.get('deploy', 'mode')
 job_store_strategy = JobStoreContext(deploy_mode).job_store_strategy()
 # 创建线程池
 executor = ThreadPoolExecutor()
@@ -88,6 +89,7 @@ def execute():
 	provenance["_id"] = job_id
 	mongo = MongoDB()
 	mongo.add_one('provenance', provenance)
+	mongo.close()
 	return json.dumps(response)
 
 

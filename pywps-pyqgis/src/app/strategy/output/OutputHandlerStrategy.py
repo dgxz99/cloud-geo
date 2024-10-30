@@ -46,7 +46,4 @@ class OutputHandlerStrategy(ABC):
 			response = requests.put(upload_url, files={'file': f})
 		response.raise_for_status()
 		os.remove(file_path)  # 删除本地文件
-		# data = response.json()["data"]
-		# output_file_name = data["name"]
-		# output_file_ext = data["format"]
-		# return output_file_name + '.' + output_file_ext
+		return filename

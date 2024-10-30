@@ -5,7 +5,7 @@ import uuid
 
 import flask
 from qgis.core import QgsApplication
-from pywps import configuration
+from config import get_config
 
 # 配置上传目录
 UPLOAD_FOLDER = os.path.join(os.getcwd(), 'inputs')
@@ -16,7 +16,8 @@ if not os.path.exists(UPLOAD_FOLDER):
 	print('inputs does not exist! Created it!')
 
 # 读取部署模式
-deploy_mode = configuration.get_config_value('deploy', 'mode')
+config = get_config()
+deploy_mode = config.get('deploy', 'mode')
 
 # 创建flask蓝图
 file_blue = flask.Blueprint('file', __name__)
@@ -25,8 +26,8 @@ file_blue = flask.Blueprint('file', __name__)
 @file_blue.route('/outputs/<path:filename>', methods=['GET'])
 def outputfile(filename):
 	if deploy_mode == 'single':
-		output_dir = configuration.get_config_value("server", "outputpath")
-		target_file = os.path.join(output_dir, filename)
+		output_dir = config.get("server", "outputpath")
+		target_file = os.path.join(os.getcwd(), output_dir, filename)
 		if os.path.isfile(target_file):
 			file_ext = os.path.splitext(target_file)[1]
 			if 'xml' in file_ext:

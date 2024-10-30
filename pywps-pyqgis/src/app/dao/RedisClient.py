@@ -1,5 +1,5 @@
 import redis
-from app.context.config import get_config
+from config import get_config
 
 config = get_config()
 
