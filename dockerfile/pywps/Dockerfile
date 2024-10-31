@@ -19,7 +19,7 @@ ENV REDIS_PASSWORD=''
 ENV CONSUL_IP=127.0.0.1
 ENV CONSUL_PORT=8500
 ENV SERVICE_NAME=py-wps
-ENV SERVICE_IP=127.0.0.1
+ENV SERVICE_IP=''
 ENV SERVICE_PORT=5000
 ENV FILE_SERVER_URL=''
 ENV DEPLOY_MODE=single
@@ -29,7 +29,7 @@ ENV UWSGI_THREADS=2
 ENV UWSGI_BUFFER_SIZE=32768
 # 配置环境
 RUN apt update \
-	&& apt install -y python3-pip \
+	&& apt install -y python3-pip curl \
 	&& apt clean \
 	&& rm -rf /var/lib/apt/lists/* \
 	&& pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple \

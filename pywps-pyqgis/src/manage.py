@@ -21,7 +21,7 @@ parser.add_argument('--redis_password', default='123456', help='Redis password')
 parser.add_argument('--consul_ip', default='127.0.0.1', help='Consul IP address')
 parser.add_argument('--consul_port', type=int, default=8500, help='Consul port')
 parser.add_argument('--service_name', default='py-wps', help='Service name')
-parser.add_argument('--service_ip', default='127.0.0.1', help='Service IP address')
+parser.add_argument('--service_ip', default='', help='Service IP address')
 parser.add_argument('--service_port', type=int, default=5000, help='Service port')
 
 # 文件服务配置
@@ -84,4 +84,4 @@ from app import create_app
 app = create_app()
 
 if __name__ == "__main__":
-	app.run()
+	app.run(host='0.0.0.0', port=5000)

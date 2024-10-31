@@ -1,6 +1,6 @@
-Flask
+Flask~=3.0.3
 py-consul
-pymongo
-redis
-pywps
-requests~=2.25.1
+pymongo~=4.7.3
+redis~=5.0.5
+pywps~=4.6.0
+requests~=2.24.0

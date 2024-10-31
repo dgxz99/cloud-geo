@@ -60,7 +60,27 @@ fi
 # 查看配置
 cat /workdir/uwsgi.ini
 
-# 启动 uWSGI 服务
-uwsgi --ini /workdir/uwsgi.ini
-# 查看输出日志
-tail -f /workdir/logs/uwsgi.log
+# 定义清理函数，停止 uWSGI 并注销服务
+cleanup() {
+  echo "Stopping uWSGI..."
+  uwsgi --stop /workdir/uwsgi.pid  # 停止 uWSGI，确保路径正确
+  
+  echo "Deregistering service from Consul..."
+  # Consul 注销命令，假设你有服务的 ID
+  curl -s -X PUT http://$CONSUL_IP:$CONSUL_PORT/v1/agent/service/deregister/$SERVICE_NAME-$SERVICE_IP-$SERVICE_PORT
+}
+
+# 捕获 SIGTERM 信号并调用清理函数
+trap cleanup SIGTERM
+
+# 启动 uWSGI 服务并在后台运行
+uwsgi --ini /workdir/uwsgi.ini &
+
+# 保存 uWSGI 的进程 ID
+UWSGI_PID=$!
+
+# 持续输出日志，同时等待 uWSGI 进程结束
+tail -f /workdir/logs/uwsgi.log &
+
+# 等待uWSGI进程，确保清理函数能在接收信号时执行
+wait $UWSGI_PID

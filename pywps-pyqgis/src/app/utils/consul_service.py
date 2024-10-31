@@ -21,12 +21,13 @@ def register_consul(service_name, service_address, service_port):
 		name=service_name,
 		address=service_address,
 		port=service_port,
-		tags=['dev'],
 		check={
 			'http': f'http://{service_address}:{service_port}/health',
+			'method': 'get',
 			'interval': '10s',
-			'timeout': '1s',
-		})
+			'timeout': '1s'
+		}
+	)
 
 
 # 注销节点
