@@ -57,16 +57,19 @@ docker run -id --name pywps-pyqgis \
 
 # 分布式部署（consul与所有节点都在同一docker网络下，若不在，SERVICE_IP使用相应的IP地址）
 # node1
-docker run -id --name pywps-pyqgis-1 \
+docker run -id \
+        --name pywps-pyqgis-1 \
         -p 5001:5000 \
         -v pywps-data-1:/workdir \
         -e MONGO_HOST=example.mongo.com \
         -e MONGO_USERNAME=example_username \
         -e MONGO_PASSWORD=example_password \
+        -e REDIS_HOST=example.redis.com \
         -e REDIS_PASSWORD=example_password \
-        -e CONSUL_IP=example.consul.com \
+        -e CONSUL_IP=consul \
         -e SERVICE_IP=pywps-pyqgis-1 \
         -e DEPLOY_MODE=distributed \
+        -e FILE_SERVER_URL=http://wps-gateway:9000/api/file \
         --network pywps \
         swsk33/distribute-geoprocessing-pywps-pyqgis
 # node2
@@ -76,9 +79,11 @@ docker run -id --name pywps-pyqgis-2 \
         -e MONGO_HOST=example.mongo.com \
         -e MONGO_USERNAME=example_username \
         -e MONGO_PASSWORD=example_password \
+        -e REDIS_HOST=example.redis.com \
         -e REDIS_PASSWORD=example_password \
         -e CONSUL_IP=example.consul.com \
         -e SERVICE_IP=pywps-pyqgis-2 \
+        -e FILE_SERVER_URL=http://wps-gateway:9000/api/file \
         -e DEPLOY_MODE=distributed \
         --network pywps \
         swsk33/distribute-geoprocessing-pywps-pyqgis
