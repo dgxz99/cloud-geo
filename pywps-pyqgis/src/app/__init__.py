@@ -2,9 +2,7 @@ import atexit
 import flask
 from config import get_config
 from .algorithm_init.init import init_database
-from .api.pywps_api import job_store_strategy
 from .utils.job_task import start_cleanup_thread
-from .api import config_blueprint
 from .utils.consul_service import register_consul, deregister_consul
 
 
@@ -14,11 +12,15 @@ def create_app():
 	# 初始化算子库
 	init_database()
 
-	# 获取配置
-	config = get_config()
+	# 局部导入，防止还未完成数据的初始化
+	from .api import config_blueprint
+	from .api.pywps_api import job_store_strategy
 
 	# 注册blueprint
 	config_blueprint(app)
+
+	# 获取配置
+	config = get_config()
 
 	# 开启清理线程
 	if config['deploy']['mode'] == 'single':

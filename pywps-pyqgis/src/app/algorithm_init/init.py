@@ -5,22 +5,33 @@ from app.context.qgis import get_qgis
 
 
 def init_database():
-	# mongodb数据库连接
-	mongo = MongoDB()
-	# 每次初始化时删除已有的数据，重新初始化数据
-	if len(mongo.find_all("algorithms")) != 0:
-		print("删除算子数量为：", mongo.delete_all_documents("algorithms"), mongo.delete_all_documents("algorithms_qgs"))
+	algorithms_qgs = []  # QGIS原始算子描述信息
+	algorithms = []  # WPS2.0算子描述信息
+
+	# 获取所有算子
 	alg_list = get_qgis().processingRegistry().algorithms()
 	for alg in alg_list:
 		try:
-			# 存储qgis算子原本描述信息
 			alg_help = get_algorithm_help(alg)
-			mongo.add_one("algorithms_qgs", {'identifier': alg.id(), 'description': alg_help})
-			# 存储qgis算子wps2.0描述信息
+			algorithms_qgs.append({'Identifier': alg.id(), 'description': alg_help})
+			# 转为WPS2.0格式
 			alg_wps = convert_wps(process_algorithm_info(alg_help))
-			mongo.add_one("algorithms", alg_wps)
+			algorithms.append(alg_wps)
 		except Exception as e:
 			print(alg.id(), e)
 
+	# mongodb数据库连接
+	mongo = MongoDB()
+	lock_name = 'database_init_lock'
+
+	if mongo.acquire_lock(lock_name):
+		try:
+			mongo.add_many("algorithms", algorithms)
+			mongo.add_many("algorithms_qgs", algorithms_qgs)
+			print(f"Database initialized! A total of algorithm {len(mongo.find_all('algorithms'))}!")
+		finally:
+			mongo.release_lock(lock_name)
+	else:
+		print("Another process is initializing the database. Waiting...")
+
 	mongo.close()
-	print(f"Database initialized! A total of algorithm {len(alg_list)}!")
