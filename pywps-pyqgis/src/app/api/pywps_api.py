@@ -139,7 +139,7 @@ def get_capabilities():
 @pywps_blue.route('/processes/<path:identifier>', methods=['GET'])
 def describe_process(identifier):
 	mongo = MongoDB()
-	alg = mongo.find_one("algorithms", {"Identifier": identifier})
+	alg = mongo.get_one("algorithms", {"Identifier": identifier})
 	if alg and '_id' in alg:
 		alg['_id'] = str(alg['_id'])
 	mongo.close()

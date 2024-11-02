@@ -10,7 +10,7 @@ provenance_blue = flask.Blueprint('provenance', __name__)
 @provenance_blue.route('/provenances/job_id/<job_id>', methods=['GET'])
 def get_job_provenances(job_id):
 	mongo = MongoDB()
-	provenance = mongo.find_one("provenance", {"_id": job_id})
+	provenance = mongo.get_one("provenance", {"_id": job_id})
 	mongo.close()
 	if not provenance:
 		return flask.jsonify({"error": "Job not found"}), 404
