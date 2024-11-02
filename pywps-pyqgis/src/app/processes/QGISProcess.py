@@ -6,10 +6,10 @@ import re
 
 from datetime import datetime, timedelta
 from app.context.qgis import get_qgis
+from config import get_config
 from app.strategy.output.OutputHandlerContext import OutputHandlerContext
 from app.strategy.output.OutputHandlerParams import OutputHandlerParams
 from pywps import Process, LiteralInput, ComplexInput, LiteralOutput
-from pywps.configuration import get_config_value
 from processing.core.Processing import processing
 from qgis.core import *
 from pywps.app.exceptions import ProcessError
@@ -37,12 +37,13 @@ class QGISProcess(Process):
 		ogr.UseExceptions()
 
 		temp_dir = self.workdir
-		output_dir = get_config_value("server", "outputpath")
-		deploy_mode = get_config_value("deploy", "mode")
+		config = get_config()
+		output_dir = config.get("server", "outputpath")
+		deploy_mode = config.get("deploy", "mode")
 		if deploy_mode == "distributed":
-			output_url = get_config_value("file", "file_server_url")
+			output_url = config.get("file", "file_server_url")
 		else:  # 其他情况都为single，单体部署
-			output_url = get_config_value("server", "outputurl")
+			output_url = config.get("server", "outputurl")
 		output_file_name = None
 
 		try:

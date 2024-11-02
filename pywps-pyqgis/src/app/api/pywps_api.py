@@ -42,7 +42,9 @@ def execute():
 	flask_request = flask.request
 	data = json.loads(flask_request.data)  # 请求体
 	mode = data.get("mode", None)
-	job_id = uuid.uuid4().hex
+	job_id = data.get("job_id", None)
+	if job_id is None:
+		job_id = uuid.uuid4().hex
 	if mode == "async":
 		del data["mode"]  # 删除异步表示，防止递归请求
 		job_data = {
@@ -52,11 +54,11 @@ def execute():
 			"timestamp": time.time()
 		}
 		# 异步执行算子
-		future = executor.submit(run_job, job_store_strategy, data, job_id)
+		executor.submit(run_job, job_store_strategy, data, job_id)
 		job_store_strategy.save_job(job_id, json.dumps(job_data))
 		stored_job_data = json.loads(job_store_strategy.get_job(job_id))
-		ret = future.result()
-		job_store_strategy.del_job(ret['jobId'])
+		# ret = future.result()
+		# job_store_strategy.del_job(ret['jobId'])
 		del stored_job_data['timestamp']
 		return json.dumps(stored_job_data)
 

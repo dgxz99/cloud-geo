@@ -14,6 +14,7 @@ def run_job(job_store_strategy, data, job_id):
 	"""
 	response = None
 	try:
+		data['job_id'] = job_id
 		response = requests.post('http://127.0.0.1:5000/jobs', json=data, timeout=36000).json()
 		job_data = {
 			"jobId": job_id,
