@@ -3,4 +3,4 @@ py-consul
 pymongo~=4.7.3
 redis~=5.0.5
 pywps~=4.6.0
-requests~=2.24.0
+requests~=2.32.0

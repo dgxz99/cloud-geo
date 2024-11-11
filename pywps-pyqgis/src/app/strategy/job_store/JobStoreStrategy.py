@@ -33,7 +33,7 @@ class InMemoryJobStore(JobStoreStrategy):
 
 	def cleanup_expired_jobs(self):
 		current_time = time.time()
-		expired_jobs = [job_id for job_id, job_data in self.job_store.items() if current_time - job_data['timestamp'] > 24 * 60 * 60]
+		expired_jobs = [job_id for job_id, job_data in self.job_store.items() if current_time - eval(job_data)['timestamp'] > 24 * 60 * 60]
 		for job_id in expired_jobs:
 			del self.job_store[job_id]
 

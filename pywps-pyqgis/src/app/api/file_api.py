@@ -23,6 +23,7 @@ deploy_mode = config.get('deploy', 'mode')
 file_blue = flask.Blueprint('file', __name__)
 
 
+# 获取输出文件
 @file_blue.route('/outputs/<path:filename>', methods=['GET'])
 def outputfile(filename):
 	if deploy_mode == 'single':
@@ -80,38 +81,3 @@ def uploaded_file(filename):
 		return flask.send_from_directory(UPLOAD_FOLDER, filename)
 	else:
 		return flask.jsonify({'error': 'Resource not found.'}), 404
-
-
-@file_blue.route('/list-algorithms', methods=['GET'])
-def list_algorithms():
-	algorithms = QgsApplication.processingRegistry().algorithms()
-
-	algorithm_names = [algorithm.id() for algorithm in algorithms]
-	return flask.jsonify(algorithm_names)
-
-
-def generate_vector_name():
-	"""
-	生成一个随机的矢量要素名称。
-	Returns:
-		vector_name (str): 随机生成的矢量名称。
-
-	"""
-	vector_name = ""
-	for i in range(6):
-		vector_name += random.choice("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
-	return vector_name
-
-
-@file_blue.route('/publish-features', methods=['POST'])
-def publish_features():
-	"""
-	接收POST请求，将vector_json_data保存到文件中
-	Returns:
-		None
-	"""
-	vector_json_data = json.loads(flask.request.get_data())
-	layer_name = generate_vector_name()
-	with open(f"static/requests/temp_{layer_name}.json", "w") as file:
-		json.dump(vector_json_data, file)
-	return layer_name
