@@ -1,10 +1,7 @@
-import json
 import os
-import random
 import uuid
 
 import flask
-from qgis.core import QgsApplication
 from config import get_config
 
 # 配置上传目录

@@ -13,6 +13,7 @@ from pywps import Process, LiteralInput, ComplexInput, LiteralOutput
 from processing.core.Processing import processing
 from qgis.core import *
 from pywps.app.exceptions import ProcessError
+from app.utils.add_mimetypes import add_mimetypes
 
 
 class QGISProcess(Process):
@@ -161,6 +162,8 @@ class QGISProcess(Process):
 			input_data: 参数的输入数据
 			temp_dir: 临时文件夹
 		"""
+		# 添加常见的GIS文件格式
+		add_mimetypes()
 		# mime_type
 		mime_types = [fmt.mime_type for fmt in param.supported_formats]
 		param_files = [item.file for item in input_data]

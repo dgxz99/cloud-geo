@@ -5,7 +5,7 @@ import sys
 import processing
 from app.context.qgis import get_qgis
 from app.algorithm_init.alg_wps2.algorithm import AlgorithmWPS, LiteralData, BoundingBoxData, ComplexData, Format
-
+from app.utils.add_mimetypes import add_mimetypes
 
 output_map = {
 	"QgsProcessingOutputBoolean": {"wps_type": "LiteralOutput", "data_type": "boolean"},
@@ -175,23 +175,7 @@ def process_algorithm_info(alg_info):
 
 			unique_mime_types = set()  # 集合去重
 			# 添加常见的GIS文件格式
-			mimetypes.add_type("x-world/x-vrt", ".vrt")
-			mimetypes.add_type('application/x-shapefile', '.shp')
-			mimetypes.add_type('application/vnd.geo+json', '.geojson')
-			mimetypes.add_type('application/vnd.google-earth.kml+xml', '.kml')
-			mimetypes.add_type('application/vnd.google-earth.kmz', '.kmz')
-			mimetypes.add_type('application/gpx+xml', '.gpx')
-			mimetypes.add_type('image/tiff', '.tif')
-			mimetypes.add_type('image/tiff', '.tiff')
-			mimetypes.add_type('application/x-esri-grid', '.asc')
-			mimetypes.add_type('application/x-hdf', '.hdf')
-			mimetypes.add_type('application/x-netcdf', '.nc')
-			mimetypes.add_type('application/x-erdas-imagine', '.img')
-			mimetypes.add_type('application/x-grass-ascii-raster', '.asc')
-			mimetypes.add_type('application/x-arcinfo-binary-coverage', '.adf')
-			mimetypes.add_type('application/x-protobuf', '.mvt')
-			mimetypes.add_type('application/x-shp-xml', '.shp.xml')
-			mimetypes.add_type('application/x-sdat', '.sdat')
+			add_mimetypes()
 			for ext in extensions:
 				mime_type, _ = mimetypes.guess_type(f'example{ext}')
 				if mime_type:
