@@ -13,7 +13,7 @@
 
         <!-- 输入参数部分 -->
         <div class="input-section">
-            <h3>输入参数</h3>
+            <h3>Input Parameters</h3>
             <div v-for="input in operator.Input" :key="input.Identifier" class="input-field">
                 <label>{{ input.Title }}</label>
                 <!-- 上传文件控件 -->
@@ -21,14 +21,13 @@
                     v-if="input.DataType === 'ComplexData' && input.Identifier !== 'OUTPUT' && input.Identifier !== 'output'"
                     :http-request="customUploadRequest" :accept="getSupportedFormats(input.ComplexData)"
                     show-file-list="false" class="uniform-width">
-                    <el-button class="upload-button uniform-width" type="primary">上传文件</el-button>
+                    <el-button class="upload-button uniform-width" type="primary">Upload File</el-button>
                 </el-upload>
-
 
                 <!-- 输出参数选择 -->
                 <el-select
                     v-if="(input.Identifier === 'OUTPUT' || input.Identifier === 'output') && input.DataType === 'ComplexData'"
-                    v-model="inputValues[input.Identifier]" placeholder="选择输出格式" class="uniform-width">
+                    v-model="inputValues[input.Identifier]" placeholder="Select Output Format" class="uniform-width">
                     <el-option v-for="(format, index) in input.ComplexData.Format" :key="index" :label="format.mimeType"
                         :value="format.mimeType">
                     </el-option>
@@ -37,7 +36,7 @@
                 <!-- LiteralData 类型的输入 -->
                 <el-select
                     v-else-if="input.DataType === 'LiteralData' && input.LiteralData.LiteralDataDomain[0].AllowedValues?.length"
-                    v-model="inputValues[input.Identifier]" placeholder="请选择" class="uniform-width">
+                    v-model="inputValues[input.Identifier]" placeholder="Please Select" class="uniform-width">
                     <el-option v-for="(value, index) in input.LiteralData.LiteralDataDomain[0].AllowedValues"
                         :key="index" :label="value[Object.keys(value)[0]]" :value="Object.keys(value)[0]">
                     </el-option>
@@ -65,21 +64,21 @@
                 </div>
             </div>
             <!-- 执行模式选择 -->
-             <h3>mode</h3>
+             <h3>Execution Mode</h3>
             <el-radio-group v-model="mode" class="uniform-width">
-                <el-radio label="sync">sync</el-radio>
-                <el-radio label="async">async</el-radio>
+                <el-radio label="sync">Synchronous</el-radio>
+                <el-radio label="async">Asynchronous</el-radio>
             </el-radio-group>
         </div>
 
         <!-- 输出参数部分 -->
         <div class="output-section">
-            <h3>输出参数</h3>
+            <h3>Output Parameters</h3>
             <div v-for="output in operator.Output" :key="output.Identifier" class="output-field">
                 <label>{{ output.Title }}</label>
 
                 <!-- 选择输出格式 -->
-                <el-select v-if="output.Identifier === 'output_txt'" v-model="selectedFormat" placeholder="选择输出格式"
+                <el-select v-if="output.Identifier === 'output_txt'" v-model="selectedFormat" placeholder="Select Output Format"
                     class="uniform-width">
                     <el-option v-for="format in output.ComplexData.Format" :key="format.mimeType"
                         :label="format.mimeType" :value="format.mimeType">
@@ -88,12 +87,12 @@
 
                 <el-button v-else-if="output.DataType === 'ComplexData' && !output.hasDownloadButton" target="_blank" @click="executeOperator"
                     type="primary" class="download-button uniform-width">
-                    下载结果
+                    Download Results
                 </el-button>
 
                 <el-select
                     v-else-if="output.DataType === 'LiteralData' && output.LiteralData.LiteralDataDomain[0].AllowedValues?.length"
-                    v-model="outputValues[output.Identifier]" placeholder="请选择" class="uniform-width">
+                    v-model="outputValues[output.Identifier]" placeholder="Please Select" class="uniform-width">
                     <el-option v-for="(value, index) in output.LiteralData.LiteralDataDomain[0].AllowedValues"
                         :key="index" :label="value[Object.keys(value)[0]]" :value="Object.keys(value)[0]">
                     </el-option>
@@ -125,7 +124,7 @@
         <!-- 执行按钮 -->
         <el-button v-if="operator.Output.every(o => o.DataType !== 'ComplexData' || o.hasDownloadButton)"
             class="execute-button uniform-width" type="primary" @click="executeOperator" :disabled="!isValidInputs">
-            执行
+            Execute Operator
         </el-button>
     </div>
 </template>
@@ -196,9 +195,10 @@ function getSupportedFormats(complexData) {
 // 上传成功的回调
 function handleUploadSuccess(response, file) {
     ElMessage({
-        message: '上传文件成功！',
-        type: 'success',
-    })
+    message: 'File uploaded successfully!',
+    type: 'success',
+   })
+
 
     console.log("上传响应数据:", response);
     console.log("上传的文件信息:", file);
@@ -232,9 +232,10 @@ function customUploadRequest({ file, data }) {
 // 上传失败的回调
 function handleUploadError(error, file) {
     ElMessage({
-        message: '上传文件失败！',
-        type: 'error',
+    message: 'File upload failed!',
+    type: 'error',
     })
+
     console.error("文件上传失败回调触发:");
     console.error("错误信息:", error);
     console.error("上传的文件信息:", file);

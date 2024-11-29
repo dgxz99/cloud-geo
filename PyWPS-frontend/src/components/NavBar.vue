@@ -1,14 +1,47 @@
 <!-- src/components/NavBar.vue -->
 <template>
-  <el-menu mode="horizontal" background-color="#FFFFFF" text-color="#000000" active-text-color="#409EFF"
-    :default-active="activeIndex" class="navbar">
-    <el-menu-item index="1" @click="switchComponent('files', toggleFilesDrawer)">文件</el-menu-item>
-    <el-menu-item index="2" @click="switchComponent('toolbox',null,toggleToolbox)">算子工具箱</el-menu-item>
-    <el-menu-item index="3" @click="switchComponent('operator-overview', null, '/operator-overview')">算子概览</el-menu-item>
-    <el-menu-item index="4" @click="switchComponent('knowledge-graph', null, '/knowledge-graph')">知识图谱</el-menu-item>
-    <el-menu-item index="5" @click="switchComponent('search', null, '/search')">算子溯源</el-menu-item>
-    <el-menu-item index="6" @click="switchComponent('user', null, '/user')">用户</el-menu-item>
-  </el-menu>
+  <el-row class="navbar-container" type="flex" justify="space-between" align="middle">
+    <!-- 左侧标题和图标 -->
+    <el-col :span="8" class="navbar-title">
+      <img src="../assets/favicon.png" alt="Logo" class="navbar-icon" style="width: 40px; height: 40px;">
+      <span class="title-text" style="font-size:30px">Geospatial Platform</span>
+    </el-col>
+
+    <!-- 右侧菜单项 -->
+    <el-col :span="16" class="navbar-menu" style="display: flex; justify-content: flex-end; flex-wrap: nowrap;">
+      <el-menu
+        mode="horizontal"
+        background-color="#FFFFFF"
+        text-color="#000000"
+        active-text-color="#409EFF"
+        :default-active="activeIndex"
+        class="navbar"
+        style="
+          text-align: right;
+          white-space: nowrap;
+          overflow: visible;
+          width: 100%;
+        "
+        :ellipsis="false"
+      >
+        <el-menu-item index="1" @click="switchComponent('files', toggleFilesDrawer)">
+          Files
+        </el-menu-item>
+        <el-menu-item index="2" @click="switchComponent('toolbox', null, toggleToolbox)">
+          Operator Toolbox
+        </el-menu-item>
+        <el-menu-item index="3" @click="switchComponent('operator-overview', null, '/operator-overview')">
+          Operator Overview
+        </el-menu-item>
+        <el-menu-item index="4" @click="switchComponent('knowledge-graph', null, '/knowledge-graph')">
+          Knowledge Graph
+        </el-menu-item>
+        <el-menu-item index="5" @click="switchComponent('search', null, '/search')">
+          Operator Traceability
+        </el-menu-item>
+      </el-menu>
+    </el-col>
+  </el-row>
 </template>
 
 <script setup>
@@ -68,24 +101,55 @@ const toggleFilesDrawer = () => {
 </script>
 
 <style scoped>
-.navbar {
-    border-bottom: 1px solid #f0f0f0;
-    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+.navbar-container {
+  height: 60px;
+  padding: 10px 20px;
+  display: flex;
+  align-items: center; /* 确保上下居中对齐 */
+  position: relative;
+  z-index: 1000; /* 确保顶部栏的 z-index 高于地图 */
+}
+
+.navbar-title {
+  display: flex;
+  align-items: center; /* 垂直居中 */
+  height: 100%; /* 确保左右两侧高度一致 */
+}
+
+.navbar-icon {
+  margin-right: 8px;
+  color: #409EFF;
+  height: 30px; /* 设置图标高度 */
+}
+
+.title-text {
+  font-weight: bold;
+  color: #409EFF;
+  line-height: 60px; /* 确保标题垂直居中 */
+}
+
+.navbar-menu {
+  display: flex;
+  align-items: center; /* 垂直居中 */
+  justify-content: flex-end; /* 保证右侧对齐 */
+  height: 100%; /* 确保与左侧栏一致 */
 }
 
 .el-menu-item {
-    font-size: 16px;
-    font-weight: 500;
+  height: 100%; /* 每个菜单项的高度 */
+  display: flex;
+  align-items: center; /* 垂直居中 */
 }
 
-.el-menu-item:hover {
-    background-color: #f5f7fa !important;
+.el-menu {
+  height: 100%;
+  width: auto !important;
+  margin-left: auto;
 }
 
-.el-menu-item.is-active {
-    border-bottom: 2px solid #409EFF;
-    color: #409EFF !important;
+.el-menu--horizontal {
+  float: right;
 }
+
 </style>
-
 

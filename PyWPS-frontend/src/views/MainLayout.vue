@@ -8,7 +8,7 @@
         </el-header>
         <el-container>
             <el-aside width="200px">
-                <SideBar />
+                <SideBar/>
             </el-aside>
             <el-main>
                 <!-- 根据不同的状态显示不同的视图 -->
@@ -45,7 +45,7 @@ import OperatorOverview from '../components/OperatorOverview.vue'
 import { ref, watch, onMounted } from 'vue'
 import { useStore } from 'vuex'
 import { useRoute, useRouter } from 'vue-router'
-import { useDrawerRoute } from '../composables/useDrawerRoute'
+import { useDrawerRoute } from '@/composables/useDrawerRoute'
 
 const store = useStore()
 const route = useRoute()
@@ -54,7 +54,7 @@ const router = useRouter()
 const { isDrawerVisible, toggleDrawer } = useDrawerRoute('/files')
 const isKnowledgeGraphVisible = ref(false)
 const isOperatorOverviewVisible = ref(false) // 控制算子概览的显示
-const isToolboxVisible = ref(true); // 是否显示工具箱
+const isToolboxVisible = ref(false); // 是否显示工具箱
 const isOperatorDetailVisible = ref(false); // 是否显示算子详情视图
 
 // 控制算子概览视图的显示
@@ -71,7 +71,7 @@ function showKnowledgeGraph() {
     closeToolbox(); // 关闭工具箱
 }
 
-// 打开工具箱，同时确保其他视图关闭
+// 打开工具箱并切换视图
 function toggleToolbox(identifier = null) {
     console.log("Toggling Toolbox, identifier:", identifier);
     if (identifier) {
@@ -79,25 +79,25 @@ function toggleToolbox(identifier = null) {
         isOperatorDetailVisible.value = true;
         isOperatorOverviewVisible.value = false;
         isKnowledgeGraphVisible.value = false;
-
-        // 如果不需要切换路由，可以移除该行
         router.push({ name: 'OperatorIdentifier', params: { Identifier: identifier } });
     } else {
+        console.log('Toolbox visibility before toggle:', isToolboxVisible.value);
         isToolboxVisible.value = !isToolboxVisible.value;
+        console.log('Toolbox visibility after toggle:', isToolboxVisible.value);
+
         if (!isToolboxVisible.value) {
-            isOperatorDetailVisible.value = false; // 仅在关闭工具箱时，才关闭详情
+            isOperatorDetailVisible.value = false;
         }
         isOperatorOverviewVisible.value = false;
         isKnowledgeGraphVisible.value = false;
     }
 }
 
-
 // 重置视图到地图视图
 function resetView() {
     isKnowledgeGraphVisible.value = false;
     isOperatorOverviewVisible.value = false;
-    isToolboxVisible.value = false;
+    // isToolboxVisible.value = false;
     isOperatorDetailVisible.value = false;
 }
 
@@ -136,5 +136,9 @@ onMounted(() => {
 /* 文件操作抽屉样式 */
 .drawer-class {
     padding-top: 0;
+}
+
+.el-main{
+  padding: 0;
 }
 </style>
