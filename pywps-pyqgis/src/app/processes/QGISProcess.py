@@ -88,12 +88,10 @@ class QGISProcess(Process):
 					self.__handle_literal_input(algorithm_params, param, input_data)
 			# 模拟算子运行出错
 			# print(1/0)
-			# 打印参数信息
-			# print("algorithm_params:", algorithm_params)
 			start_time = datetime.now()
 			self.provenance["name"] = self.identifier
 			self.provenance["params"] = algorithm_params
-			self.provenance["start_time"] = start_time.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
+			self.provenance["start_time"] = start_time.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
 
 			# 调用 QGIS 算法执行逻辑，使用 algorithm_identifier 执行算法
 			ret = processing.run(self.identifier, algorithm_params)
@@ -114,8 +112,8 @@ class QGISProcess(Process):
 
 			estimated_completion = datetime.now()
 			expiration_time = estimated_completion + timedelta(days=1)
-			self.provenance["estimated_completion"] = estimated_completion.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
-			self.provenance["expiration_time"] = expiration_time.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
+			self.provenance["estimated_completion"] = estimated_completion.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+			self.provenance["expiration_time"] = expiration_time.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
 			self.provenance["run_time"] = (datetime.now() - start_time).total_seconds()
 			self.provenance["status"] = f"{self.identifier}运行成功!"
 			self.provenance["result"] = result

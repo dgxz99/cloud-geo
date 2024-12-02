@@ -8,6 +8,7 @@ from config import get_config, get_config_file_path
 from concurrent.futures import ThreadPoolExecutor
 from app.dao.mongo import MongoDB
 from pywps import Service
+from pywps.exceptions import NoApplicableCode
 
 from app.processes.QGISProFactory import QGISProcFactory
 from app.strategy.job_store.JobStoreContext import JobStoreContext
@@ -57,18 +58,26 @@ def execute():
 		executor.submit(run_job, job_store_strategy, data, job_id)
 		job_store_strategy.save_job(job_id, json.dumps(job_data))
 		stored_job_data = json.loads(job_store_strategy.get_job(job_id))
-		# ret = future.result()
-		# job_store_strategy.del_job(ret['jobId'])
 		del stored_job_data['timestamp']
 		return json.dumps(stored_job_data)
 
-	provenance = None
-	wps_resp = service.call(flask_request).json
 	try:
+		wps_response = service.call(flask_request)
+		if isinstance(wps_response, NoApplicableCode):
+			raise wps_response
+		wps_resp = wps_response.json
+
+		provenance = {}
 		for val in wps_resp['outputs']:
 			if val.get('identifier') == 'provenance':
 				provenance = json.loads(val.get('data').replace("'", "\""))
 				break
+
+		# 存储 provenance
+		provenance["_id"] = job_id
+		mongo = MongoDB()
+		mongo.add_one('provenance', provenance)
+		mongo.close()
 
 		response = {
 			'jobId': job_id,
@@ -79,19 +88,15 @@ def execute():
 			'message': wps_resp['status']['message'],
 			'output': provenance['result']
 		}
-	except:
+	except Exception as e:
 		response = {
 			'jobId': job_id,
-			'status': wps_resp['status']['status'],
-			'percentCompleted': wps_resp['status']['percent_done'],
-			'message': wps_resp['status']['message'],
+			'status': "failed",
+			'message': "Failed to execute process",
+			"result": str(e),
 		}
 
 	job_store_strategy.save_job(job_id, json.dumps({'result': response}))
-	provenance["_id"] = job_id
-	mongo = MongoDB()
-	mongo.add_one('provenance', provenance)
-	mongo.close()
 	return json.dumps(response)
 
 
@@ -99,12 +104,13 @@ def execute():
 def get_job_status(job_id):
 	job_json = job_store_strategy.get_job(job_id)
 	if job_json:
-		job_data = json.loads(job_json)
-		if 'timestamp' in job_data:
-			del job_data['timestamp']
-			del job_data['result']['jobId']
-			del job_data['result']['status']
-		return json.dumps(job_data)
+		job_results = json.loads(job_json)['result']
+		if 'timestamp' in job_results:
+			del job_results['timestamp']
+			if job_results['status'] != 'Running':
+				del job_results['result']['jobId']
+				del job_results['result']['status']
+		return json.dumps(job_results)
 	else:
 		return flask.jsonify({"error": "Job not found"}), 404
 
