@@ -38,7 +38,7 @@ def run_job(job_store_strategy, data, job_id):
 def cleanup_thread_func(job_store_strategy):
 	while True:
 		job_store_strategy.cleanup_expired_jobs()
-		time.sleep(3)  # 每小时检查一次
+		time.sleep(3600)  # 每小时检查一次
 
 
 def start_cleanup_thread(job_store_strategy):

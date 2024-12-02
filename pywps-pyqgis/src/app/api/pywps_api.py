@@ -77,7 +77,8 @@ def execute():
 		# 存储 provenance
 		provenance["_id"] = job_id
 		mongo = MongoDB()
-		mongo.add_one('provenance', provenance)
+		w3c_prov = to_w3c_prov(provenance)
+		mongo.add_one('provenance', w3c_prov)
 		mongo.close()
 
 		response = {
@@ -99,6 +100,46 @@ def execute():
 
 	# job_store_strategy.save_job(job_id, json.dumps({'result': response}))
 	return JsonResponse.success(data=response)
+
+
+def to_w3c_prov(prov):
+	return {
+		"_id": prov['_id'],
+		"executor": {"identifier": prov['name'], "type": "Executor"},
+		"entities": [
+			{
+				"type": "Params",
+				"value": prov['params']
+			},
+			{
+				"type": "Results",
+				"value": prov['result']
+			}
+		],
+		"activities": [
+			{
+				"type": "Execute",
+				"attributes": {
+					"startTime": prov['start_time'],
+					"estimatedCompletion": prov['estimated_completion'],
+					"expirationTime": prov['expiration_time'],
+					"runTime": prov["run_time"],
+					"status": prov['status']
+				}
+			}
+		],
+		"relationships": [
+			{"type": "generated", "source": "Execute", "target": "Result"},
+			{"type": "used", "source": "Execute", "target": "Params"},
+			{"type": "responsibleFor", "source": "Executor", "target": "Execute"}
+		],
+		"context": {
+			"project": "CloudGeoPy",
+			"process": f"{prov['name']} Operation",
+			"environment": "PyWPS with PyQGIS backend",
+			"version": "1.0.0"
+		}
+	}
 
 
 @pywps_blue.route('/jobs/<job_id>', methods=['GET'])

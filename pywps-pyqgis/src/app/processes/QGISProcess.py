@@ -115,14 +115,14 @@ class QGISProcess(Process):
 			self.provenance["estimated_completion"] = estimated_completion.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
 			self.provenance["expiration_time"] = expiration_time.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
 			self.provenance["run_time"] = (datetime.now() - start_time).total_seconds()
-			self.provenance["status"] = f"{self.identifier}运行成功!"
+			self.provenance["status"] = f"{self.identifier} run successfully!"
 			self.provenance["result"] = result
 
 		except Exception as e:
 			# 处理异常
 			print(f'\033[93m{self.identifier} run error!\033[0m')  # 终端黄色打印，算子执行失败
-			self.provenance["status"] = f"{self.identifier}运行失败!"
-			raise ProcessError(f"算子运行时发生错误: {str(e)}")
+			self.provenance["status"] = f"{self.identifier} run failed!"
+			raise ProcessError(f"An error occurred while the operator was running: {str(e)}")
 		finally:
 			response.outputs["provenance"].data = self.provenance
 
@@ -169,7 +169,7 @@ class QGISProcess(Process):
 		for param_file in param_files:
 			file_mimetype, _ = mimetypes.guess_type(param_file)
 			if file_mimetype not in mime_types:
-				raise ProcessError(f"传入文件格式有误，{param.identifier}只能传入{mime_types}类型数据！")
+				raise ProcessError(f"The incoming file format is incorrect,{param.identifier} can only pass in {mime_types} type data!")
 
 		# 根据输入参数的最大出现次数不同实现相应的处理
 		if param.max_occurs == 1:
