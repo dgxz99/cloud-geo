@@ -13,6 +13,7 @@ from pywps.exceptions import NoApplicableCode
 from app.processes.QGISProFactory import QGISProcFactory
 from app.strategy.job_store.JobStoreContext import JobStoreContext
 from app.utils.job_task import run_job
+from app.utils.json_response import JsonResponse
 
 # 算子初始化
 processes = QGISProcFactory().init_algorithms()
@@ -59,7 +60,7 @@ def execute():
 		job_store_strategy.save_job(job_id, json.dumps(job_data))
 		stored_job_data = json.loads(job_store_strategy.get_job(job_id))
 		del stored_job_data['timestamp']
-		return json.dumps(stored_job_data)
+		return JsonResponse.success(data=stored_job_data)
 
 	try:
 		wps_response = service.call(flask_request)
@@ -96,23 +97,23 @@ def execute():
 			"result": str(e),
 		}
 
-	job_store_strategy.save_job(job_id, json.dumps({'result': response}))
-	return json.dumps(response)
+	# job_store_strategy.save_job(job_id, json.dumps({'result': response}))
+	return JsonResponse.success(data=response)
 
 
 @pywps_blue.route('/jobs/<job_id>', methods=['GET'])
 def get_job_status(job_id):
 	job_json = job_store_strategy.get_job(job_id)
 	if job_json:
-		job_results = json.loads(job_json)['result']
-		if 'timestamp' in job_results:
-			del job_results['timestamp']
-			if job_results['status'] != 'Running':
-				del job_results['result']['jobId']
-				del job_results['result']['status']
-		return json.dumps(job_results)
+		job_data = json.loads(job_json)
+		if 'timestamp' in job_data:
+			del job_data['timestamp']
+			if job_data['status'] != 'Running':
+				del job_data['result']['jobId']
+				del job_data['result']['status']
+		return JsonResponse.success(job_data)
 	else:
-		return flask.jsonify({"error": "Job not found"}), 404
+		return JsonResponse.error(data={"message": "Job not found"})
 
 
 @pywps_blue.route('/results/<job_id>', methods=['GET'])
@@ -120,10 +121,12 @@ def get_job_results(job_id):
 	job_json = job_store_strategy.get_job(job_id)
 	if job_json:
 		ret = json.loads(job_json)
-		if ret['result']:
-			return json.dumps(ret['result'])
+		print(ret['result'] is not None)
+		if ret['result'] is None and ret['status'] == 'Running':
+			return JsonResponse.success(data={"message": "Job is still running"})
+		return JsonResponse.success(data=ret['result'])
 	else:
-		return flask.jsonify({"error": "Job not found"}), 404
+		return JsonResponse.error(data={"message": "Job not found"})
 
 
 @pywps_blue.route('/processes', methods=['GET'])
@@ -131,7 +134,7 @@ def get_capabilities():
 	flask_request = flask.request
 	pywps_resp = service.call(flask_request).json
 
-	response = json.dumps({
+	response = {
 		"service": "WPS",
 		"version": "2.0",
 		"title": pywps_resp["title"],
@@ -140,8 +143,8 @@ def get_capabilities():
 		"keywords_type": pywps_resp["keywords_type"],
 		"provider": pywps_resp["provider"],
 		"contents": [{"Title": p["title"], "Abstract": p["abstract"], "Identifier": p["identifier"]} for p in pywps_resp["processes"]]
-	})
-	return response
+	}
+	return JsonResponse.success(data=response)
 
 
 @pywps_blue.route('/processes/<path:identifier>', methods=['GET'])
@@ -151,4 +154,4 @@ def describe_process(identifier):
 	if alg and '_id' in alg:
 		alg['_id'] = str(alg['_id'])
 	mongo.close()
-	return json.dumps(alg)
+	return JsonResponse.success(data=alg)

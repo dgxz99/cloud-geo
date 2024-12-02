@@ -38,9 +38,13 @@ class InMemoryJobStore(JobStoreStrategy):
 		expired_jobs = []
 		for job_id, job_data in self.job_store.items():
 			job_result = json.loads(job_data)['result']
+			if job_result is None or job_result['status'] == 'Running':
+				continue
+
 			if job_result['status'] == 'failed':
 				expired_jobs.append(job_id)
 				continue
+
 			# 将ISO 8601格式的字符串转换为datetime对象
 			expiration_time = datetime.fromisoformat(job_result['expirationTime'])
 			# 将datetime对象转换为时间戳
