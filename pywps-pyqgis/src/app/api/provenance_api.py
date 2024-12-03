@@ -1,4 +1,3 @@
-import json
 import flask
 
 from app.dao.mongo import MongoDB

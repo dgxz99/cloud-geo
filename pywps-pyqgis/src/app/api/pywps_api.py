@@ -98,7 +98,6 @@ def execute():
 			"result": str(e),
 		}
 
-	# job_store_strategy.save_job(job_id, json.dumps({'result': response}))
 	return JsonResponse.success(data=response)
 
 
@@ -162,7 +161,6 @@ def get_job_results(job_id):
 	job_json = job_store_strategy.get_job(job_id)
 	if job_json:
 		ret = json.loads(job_json)
-		print(ret['result'] is not None)
 		if ret['result'] is None and ret['status'] == 'Running':
 			return JsonResponse.success(data={"message": "Job is still running"})
 		return JsonResponse.success(data=ret['result'])
@@ -176,13 +174,13 @@ def get_capabilities():
 	pywps_resp = service.call(flask_request).json
 
 	response = {
-		"service": "WPS",
-		"version": "2.0",
+		"service": "CloudGeoPy",
+		"version": "1.0.0",
 		"title": pywps_resp["title"],
 		"abstract": pywps_resp["abstract"],
 		"keywords": pywps_resp["keywords"],
 		"keywords_type": pywps_resp["keywords_type"],
-		"provider": pywps_resp["provider"],
+		# "provider": pywps_resp["provider"],
 		"contents": [{"Title": p["title"], "Abstract": p["abstract"], "Identifier": p["identifier"]} for p in pywps_resp["processes"]]
 	}
 	return JsonResponse.success(data=response)

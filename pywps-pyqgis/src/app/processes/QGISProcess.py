@@ -86,8 +86,7 @@ class QGISProcess(Process):
 					self.__handle_complex_input(algorithm_params, param, input_data, temp_dir)
 				elif isinstance(param, LiteralInput):
 					self.__handle_literal_input(algorithm_params, param, input_data)
-			# 模拟算子运行出错
-			# print(1/0)
+
 			start_time = datetime.now()
 			self.provenance["name"] = self.identifier
 			self.provenance["params"] = algorithm_params
