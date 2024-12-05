@@ -1,5 +1,6 @@
 import time
 import json
+from datetime import datetime
 
 from app.dao.RedisClient import RedisClient
 
@@ -32,8 +33,24 @@ class InMemoryJobStore(JobStoreStrategy):
 		del self.job_store[job_id]
 
 	def cleanup_expired_jobs(self):
-		current_time = time.time()
-		expired_jobs = [job_id for job_id, job_data in self.job_store.items() if current_time - eval(job_data)['timestamp'] > 24 * 60 * 60]
+		# 获取当前UTC时间
+		current_timestamp = time.time()
+		expired_jobs = []
+		for job_id, job_data in self.job_store.items():
+			job_result = json.loads(job_data)['result']
+			if job_result is None or job_result['status'] == 'Running':
+				continue
+
+			if job_result['status'] == 'failed':
+				expired_jobs.append(job_id)
+				continue
+
+			# 将ISO 8601格式的字符串转换为datetime对象
+			expiration_time = datetime.fromisoformat(job_result['expirationTime'])
+			# 将datetime对象转换为时间戳
+			expiration_timestamp = expiration_time.timestamp()
+			if current_timestamp - expiration_timestamp > 24 * 60 * 60:
+				expired_jobs.append(job_id)
 		for job_id in expired_jobs:
 			del self.job_store[job_id]
 

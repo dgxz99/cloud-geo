@@ -86,14 +86,11 @@ class QGISProcess(Process):
 					self.__handle_complex_input(algorithm_params, param, input_data, temp_dir)
 				elif isinstance(param, LiteralInput):
 					self.__handle_literal_input(algorithm_params, param, input_data)
-			# 模拟算子运行出错
-			# print(1/0)
-			# 打印参数信息
-			# print("algorithm_params:", algorithm_params)
+
 			start_time = datetime.now()
 			self.provenance["name"] = self.identifier
 			self.provenance["params"] = algorithm_params
-			self.provenance["start_time"] = start_time.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
+			self.provenance["start_time"] = start_time.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
 
 			# 调用 QGIS 算法执行逻辑，使用 algorithm_identifier 执行算法
 			ret = processing.run(self.identifier, algorithm_params)
@@ -114,17 +111,17 @@ class QGISProcess(Process):
 
 			estimated_completion = datetime.now()
 			expiration_time = estimated_completion + timedelta(days=1)
-			self.provenance["estimated_completion"] = estimated_completion.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
-			self.provenance["expiration_time"] = expiration_time.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
+			self.provenance["estimated_completion"] = estimated_completion.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+			self.provenance["expiration_time"] = expiration_time.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
 			self.provenance["run_time"] = (datetime.now() - start_time).total_seconds()
-			self.provenance["status"] = f"{self.identifier}运行成功!"
+			self.provenance["status"] = f"{self.identifier} run successfully!"
 			self.provenance["result"] = result
 
 		except Exception as e:
 			# 处理异常
 			print(f'\033[93m{self.identifier} run error!\033[0m')  # 终端黄色打印，算子执行失败
-			self.provenance["status"] = f"{self.identifier}运行失败!"
-			raise ProcessError(f"算子运行时发生错误: {str(e)}")
+			self.provenance["status"] = f"{self.identifier} run failed!"
+			raise ProcessError(f"An error occurred while the operator was running: {str(e)}")
 		finally:
 			response.outputs["provenance"].data = self.provenance
 
@@ -171,7 +168,7 @@ class QGISProcess(Process):
 		for param_file in param_files:
 			file_mimetype, _ = mimetypes.guess_type(param_file)
 			if file_mimetype not in mime_types:
-				raise ProcessError(f"传入文件格式有误，{param.identifier}只能传入{mime_types}类型数据！")
+				raise ProcessError(f"The incoming file format is incorrect,{param.identifier} can only pass in {mime_types} type data!")
 
 		# 根据输入参数的最大出现次数不同实现相应的处理
 		if param.max_occurs == 1:

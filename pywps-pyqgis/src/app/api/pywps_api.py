@@ -8,10 +8,12 @@ from config import get_config, get_config_file_path
 from concurrent.futures import ThreadPoolExecutor
 from app.dao.mongo import MongoDB
 from pywps import Service
+from pywps.exceptions import NoApplicableCode
 
 from app.processes.QGISProFactory import QGISProcFactory
 from app.strategy.job_store.JobStoreContext import JobStoreContext
 from app.utils.job_task import run_job
+from app.utils.json_response import JsonResponse
 
 # 算子初始化
 processes = QGISProcFactory().init_algorithms()
@@ -57,18 +59,27 @@ def execute():
 		executor.submit(run_job, job_store_strategy, data, job_id)
 		job_store_strategy.save_job(job_id, json.dumps(job_data))
 		stored_job_data = json.loads(job_store_strategy.get_job(job_id))
-		# ret = future.result()
-		# job_store_strategy.del_job(ret['jobId'])
 		del stored_job_data['timestamp']
-		return json.dumps(stored_job_data)
+		return JsonResponse.success(data=stored_job_data)
 
-	provenance = None
-	wps_resp = service.call(flask_request).json
 	try:
+		wps_response = service.call(flask_request)
+		if isinstance(wps_response, NoApplicableCode):
+			raise wps_response
+		wps_resp = wps_response.json
+
+		provenance = {}
 		for val in wps_resp['outputs']:
 			if val.get('identifier') == 'provenance':
 				provenance = json.loads(val.get('data').replace("'", "\""))
 				break
+
+		# 存储 provenance
+		provenance["_id"] = job_id
+		mongo = MongoDB()
+		w3c_prov = to_w3c_prov(provenance)
+		mongo.add_one('provenance', w3c_prov)
+		mongo.close()
 
 		response = {
 			'jobId': job_id,
@@ -79,20 +90,55 @@ def execute():
 			'message': wps_resp['status']['message'],
 			'output': provenance['result']
 		}
-	except:
+	except Exception as e:
 		response = {
 			'jobId': job_id,
-			'status': wps_resp['status']['status'],
-			'percentCompleted': wps_resp['status']['percent_done'],
-			'message': wps_resp['status']['message'],
+			'status': "failed",
+			'message': "Failed to execute process",
+			"result": str(e),
 		}
 
-	job_store_strategy.save_job(job_id, json.dumps({'result': response}))
-	provenance["_id"] = job_id
-	mongo = MongoDB()
-	mongo.add_one('provenance', provenance)
-	mongo.close()
-	return json.dumps(response)
+	return JsonResponse.success(data=response)
+
+
+def to_w3c_prov(prov):
+	return {
+		"_id": prov['_id'],
+		"executor": {"identifier": prov['name'], "type": "Executor"},
+		"entities": [
+			{
+				"type": "Params",
+				"value": prov['params']
+			},
+			{
+				"type": "Results",
+				"value": prov['result']
+			}
+		],
+		"activities": [
+			{
+				"type": "Execute",
+				"attributes": {
+					"startTime": prov['start_time'],
+					"estimatedCompletion": prov['estimated_completion'],
+					"expirationTime": prov['expiration_time'],
+					"runTime": prov["run_time"],
+					"status": prov['status']
+				}
+			}
+		],
+		"relationships": [
+			{"type": "generated", "source": "Execute", "target": "Result"},
+			{"type": "used", "source": "Execute", "target": "Params"},
+			{"type": "responsibleFor", "source": "Executor", "target": "Execute"}
+		],
+		"context": {
+			"project": "CloudGeoPy",
+			"process": f"{prov['name']} Operation",
+			"environment": "PyWPS with PyQGIS backend",
+			"version": "1.0.0"
+		}
+	}
 
 
 @pywps_blue.route('/jobs/<job_id>', methods=['GET'])
@@ -102,11 +148,12 @@ def get_job_status(job_id):
 		job_data = json.loads(job_json)
 		if 'timestamp' in job_data:
 			del job_data['timestamp']
-			del job_data['result']['jobId']
-			del job_data['result']['status']
-		return json.dumps(job_data)
+			if job_data['status'] != 'Running':
+				del job_data['result']['jobId']
+				del job_data['result']['status']
+		return JsonResponse.success(job_data)
 	else:
-		return flask.jsonify({"error": "Job not found"}), 404
+		return JsonResponse.error(data={"message": "Job not found"})
 
 
 @pywps_blue.route('/results/<job_id>', methods=['GET'])
@@ -114,10 +161,11 @@ def get_job_results(job_id):
 	job_json = job_store_strategy.get_job(job_id)
 	if job_json:
 		ret = json.loads(job_json)
-		if ret['result']:
-			return json.dumps(ret['result'])
+		if ret['result'] is None and ret['status'] == 'Running':
+			return JsonResponse.success(data={"message": "Job is still running"})
+		return JsonResponse.success(data=ret['result'])
 	else:
-		return flask.jsonify({"error": "Job not found"}), 404
+		return JsonResponse.error(data={"message": "Job not found"})
 
 
 @pywps_blue.route('/processes', methods=['GET'])
@@ -125,17 +173,17 @@ def get_capabilities():
 	flask_request = flask.request
 	pywps_resp = service.call(flask_request).json
 
-	response = json.dumps({
-		"service": "WPS",
-		"version": "2.0",
+	response = {
+		"service": "CloudGeoPy",
+		"version": "1.0.0",
 		"title": pywps_resp["title"],
 		"abstract": pywps_resp["abstract"],
 		"keywords": pywps_resp["keywords"],
 		"keywords_type": pywps_resp["keywords_type"],
-		"provider": pywps_resp["provider"],
+		# "provider": pywps_resp["provider"],
 		"contents": [{"Title": p["title"], "Abstract": p["abstract"], "Identifier": p["identifier"]} for p in pywps_resp["processes"]]
-	})
-	return response
+	}
+	return JsonResponse.success(data=response)
 
 
 @pywps_blue.route('/processes/<path:identifier>', methods=['GET'])
@@ -145,4 +193,4 @@ def describe_process(identifier):
 	if alg and '_id' in alg:
 		alg['_id'] = str(alg['_id'])
 	mongo.close()
-	return json.dumps(alg)
+	return JsonResponse.success(data=alg)

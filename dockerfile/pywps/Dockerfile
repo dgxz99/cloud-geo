@@ -5,6 +5,8 @@ ADD data.tar.gz /workdir
 ADD start.sh /workdir
 # 工作目录
 WORKDIR /workdir
+# 中文环境
+ENV LANG C.UTF-8
 # 项目运行环境变量
 ENV WORK_DIR=/workdir
 ENV MONGO_HOST=127.0.0.1
