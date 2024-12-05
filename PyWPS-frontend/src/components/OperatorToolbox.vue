@@ -2,7 +2,7 @@
 <template>
     <div class="toolbox-container">
         <el-tabs v-model="activeTab">
-            <el-tab-pane label="工具箱" name="toolbox">
+            <el-tab-pane label="Processing Toolbox" name="toolbox">
                 <ul v-if="!loading">
                     <li v-for="operator in operators" :key="operator.Identifier">
                         <el-button type="text" @click="selectOperator(operator)">
@@ -11,7 +11,7 @@
                     </li>
                 </ul>
             </el-tab-pane>
-            <el-tab-pane label="处理结果" name="results">
+            <el-tab-pane label="Processed Data" name="results">
                 <p>这里是处理结果的展示区域。</p>
             </el-tab-pane>
         </el-tabs>
@@ -19,8 +19,8 @@
 </template>
 
 <script setup>
-import { ref, computed, defineProps,onMounted } from 'vue';
-import { useStore } from 'vuex';
+import {ref, computed, defineProps, onMounted} from 'vue';
+import {useStore} from 'vuex';
 // import { useRouter } from 'vue-router';
 const props = defineProps({
     toggleToolbox: Function,
@@ -40,15 +40,7 @@ const selectOperator = (operator) => {
     props.toggleToolbox(operator.Identifier);
 };
 
-onMounted(() => {
-    console.log("OperatorToolbox Mounted: Operators =", operators.value);
-});
-
-
-
-
 </script>
-
 
 
 <style scoped>

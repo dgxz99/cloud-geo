@@ -3,38 +3,37 @@
     <el-container style="height: 100vh;">
         <el-header>
             <NavBar @toggle-files-drawer="toggleDrawer" @toggle-toolbox="toggleToolbox"
-                @show-knowledge-graph="showKnowledgeGraph" @reset-view="resetView"
-                @show-operator-overview="showOperatorOverview" />
+                    @show-knowledge-graph="showKnowledgeGraph" @reset-view="resetView"
+                    @show-operator-overview="showOperatorOverview"/>
         </el-header>
         <el-container>
             <el-aside width="200px">
-                <SideBar/>
+                <layerManagement/>
             </el-aside>
             <el-main>
                 <!-- 根据不同的状态显示不同的视图 -->
-                <MapContainer v-if="!isKnowledgeGraphVisible && !isOperatorOverviewVisible" />
-                <KnowledgeGraph v-if="isKnowledgeGraphVisible" />
-                <OperatorOverview v-if="isOperatorOverviewVisible" />
+                <MapContainer v-if="!isKnowledgeGraphVisible && !isOperatorOverviewVisible"/>
+                <KnowledgeGraph v-if="isKnowledgeGraphVisible"/>
+                <OperatorOverview v-if="isOperatorOverviewVisible"/>
             </el-main>
             <!-- 工具箱和算子详情的动态显示 -->
             <OperatorToolbox v-if="isToolboxVisible && !isOperatorDetailVisible" :toggleToolbox="toggleToolbox"
-                :is-toolbox-visible="isToolboxVisible" :is-operator-detail-visible="isOperatorDetailVisible" />
-
-            <OperatorIdentifier v-show="isToolboxVisible && isOperatorDetailVisible" />
-
+                             :is-toolbox-visible="isToolboxVisible"
+                             :is-operator-detail-visible="isOperatorDetailVisible"/>
+            
+            <OperatorIdentifier v-show="isToolboxVisible && isOperatorDetailVisible"/>
+        
         </el-container>
-
+        
         <el-drawer title="导入数据" v-model="isDrawerVisible" direction="rtl" custom-class="drawer-class" size="1200px">
-            <FilesDrawer @update:filesContainerVisible="isDrawerVisible = false" />
+            <FilesDrawer @update:filesContainerVisible="isDrawerVisible = false"/>
         </el-drawer>
     </el-container>
 </template>
 
 
-
 <script setup>
 import NavBar from '../components/NavBar.vue'
-import SideBar from '../components/SideBar.vue'
 import FilesDrawer from '../components/FilesDrawer.vue'
 import OperatorToolbox from '../components/OperatorToolbox.vue'
 import OperatorIdentifier from '../components/OperatorIdentifier.vue'
@@ -42,16 +41,17 @@ import KnowledgeGraph from '@/components/KnowledgeGraph.vue'
 import MapContainer from '../components/MapContainer.vue'
 import OperatorOverview from '../components/OperatorOverview.vue'
 
-import { ref, watch, onMounted } from 'vue'
-import { useStore } from 'vuex'
-import { useRoute, useRouter } from 'vue-router'
-import { useDrawerRoute } from '@/composables/useDrawerRoute'
+import {ref, watch, onMounted} from 'vue'
+import {useStore} from 'vuex'
+import {useRoute, useRouter} from 'vue-router'
+import {useDrawerRoute} from '@/composables/useDrawerRoute'
+import LayerManagement from "@/components/LayerManagement.vue";
 
 const store = useStore()
 const route = useRoute()
 const router = useRouter()
 
-const { isDrawerVisible, toggleDrawer } = useDrawerRoute('/files')
+const {isDrawerVisible, toggleDrawer} = useDrawerRoute('/files')
 const isKnowledgeGraphVisible = ref(false)
 const isOperatorOverviewVisible = ref(false) // 控制算子概览的显示
 const isToolboxVisible = ref(false); // 是否显示工具箱
@@ -73,18 +73,15 @@ function showKnowledgeGraph() {
 
 // 打开工具箱并切换视图
 function toggleToolbox(identifier = null) {
-    console.log("Toggling Toolbox, identifier:", identifier);
     if (identifier) {
         isToolboxVisible.value = true;
         isOperatorDetailVisible.value = true;
         isOperatorOverviewVisible.value = false;
         isKnowledgeGraphVisible.value = false;
-        router.push({ name: 'OperatorIdentifier', params: { Identifier: identifier } });
+        router.push({name: 'OperatorIdentifier', params: {Identifier: identifier}});
     } else {
-        console.log('Toolbox visibility before toggle:', isToolboxVisible.value);
         isToolboxVisible.value = !isToolboxVisible.value;
-        console.log('Toolbox visibility after toggle:', isToolboxVisible.value);
-
+        
         if (!isToolboxVisible.value) {
             isOperatorDetailVisible.value = false;
         }
@@ -138,7 +135,7 @@ onMounted(() => {
     padding-top: 0;
 }
 
-.el-main{
-  padding: 0;
+.el-main {
+    padding: 0;
 }
 </style>

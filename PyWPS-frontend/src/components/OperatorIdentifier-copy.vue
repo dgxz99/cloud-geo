@@ -1,9 +1,7 @@
-<!--src/components/OperatorIdentifier-->
 <template>
-    
     <div class="operator-identifier" v-if="operator">
         <!-- 返回按钮 -->
-        <el-button type="text" class="back-button" @click="doClear()">
+        <el-button type="text" class="back-button" @click="$router.push({ name: 'OperatorToolbox' })">
             <el-icon>
                 <ArrowLeft/>
             </el-icon>
@@ -16,25 +14,18 @@
         <!-- 输入参数部分 -->
         <div class="input-section">
             <h3>Input Parameters</h3>
-            <div v-for="input in operator.Input.filter(i => i.Identifier !== 'OUTPUT' && i.Identifier !== 'output')"
-                 :key="input.Identifier" class="input-field">
+            <div v-for="input in operator.Input" :key="input.Identifier" class="input-field">
                 <label>{{ input.Title }}</label>
                 <!-- 上传文件控件 -->
                 <el-upload
-                    v-if="input.DataType === 'ComplexData'"
-                    :ref="(ref) => registerUploadRef('upload-' + input.Identifier, ref)"
-                    :data="{ identifier: input.Identifier }"
-                    :accept="getSupportedFormats(input.ComplexData)"
-                    class="uniform-width"
-                    action="/api/upload"
-                    :on-success="(response, file, fileList) => handleUploadSuccess(response, file, input.Identifier)"
-                    :on-error="handleUploadError"
-                >
+                    v-if="input.DataType === 'ComplexData' && input.Identifier !== 'OUTPUT' && input.Identifier !== 'output'"
+                    :http-request="customUploadRequest" :accept="getSupportedFormats(input.ComplexData)"
+                    show-file-list="false" class="uniform-width">
                     <el-button class="upload-button uniform-width" type="primary">Upload File</el-button>
                 </el-upload>
                 
                 
-                <!-- 输入参数选择 -->
+                <!-- 输出参数选择 -->
                 <el-select
                     v-if="(input.Identifier === 'OUTPUT' || input.Identifier === 'output') && input.DataType === 'ComplexData'"
                     v-model="inputValues[input.Identifier]" placeholder="Select Output Format" class="uniform-width">
@@ -141,27 +132,32 @@
                    :disabled="!isValidInputs">
             Execute Operator
         </el-button>
-    
     </div>
 </template>
 
 <script setup>
-import {ref, watch,} from 'vue';
-import {useRoute, useRouter} from 'vue-router';
+import {ref, watch} from 'vue';
+import {useRoute} from 'vue-router';
 import {ArrowLeft} from '@element-plus/icons-vue';
 import axios from 'axios';
 import {ElMessage} from 'element-plus';
+import {useStore} from 'vuex';
 
-
-const operator = ref(null);
-const router = useRouter();
+const store = useStore();
 const route = useRoute();
+const operator = ref(null);
+
 const inputValues = ref({});
 const outputValues = ref({});
 const selectedFormat = ref(null);
+// 定义执行模式的响应变量，默认值设置为 'sync' 或 'async'，取决于你的默认需求
 const mode = ref('sync');
-const uploadRefs = ref({}); // 用于存储所有 el-upload 的引用
 
+
+// 用于验证输入参数是否有效
+const isValidInputs = ref(true);
+
+// 监视路由参数中的 Identifier 变化，以便动态加载算子信息
 watch(
     () => route.params.Identifier,
     async (newIdentifier) => {
@@ -179,26 +175,6 @@ watch(
     },
     {immediate: true}
 );
-
-function doClear() {
-    // 清空所有上传文件的列表
-    Object.values(uploadRefs.value).forEach((uploadInstance) => {
-        if (uploadInstance && uploadInstance.clearFiles) {
-            uploadInstance.clearFiles();
-        }
-    });
-    
-    // 返回算子工具箱
-    router.push({name: 'OperatorToolbox'});
-}
-
-// 在模板中动态注册 refs
-function registerUploadRef(refName, refInstance) {
-    if (refInstance) {
-        uploadRefs.value[refName] = refInstance;
-    }
-}
-
 
 // 初始化输入参数的值
 function initializeParameterinValues() {
@@ -226,49 +202,93 @@ function getSupportedFormats(complexData) {
     return complexData?.Format?.map(f => f.mimeType).join(',') || '';
 }
 
-// src/components/OperatorIdentifier.vue
 // 上传成功的回调
-function handleUploadSuccess(response, file, identifier) {
-    console.log("文件上传成功回调触发", response);
-    console.log("上传的 Identifier:", identifier);  // 确保 identifier 是上传文件时传递的值
-    
+// src/components/OperatorIdentifier.vue
+function handleUploadSuccess(response, file) {
+    console.log("文件上传成功回调触发");
     ElMessage({
-        message: '文件上传成功！',
+        message: 'File uploaded successfully!',
         type: 'success',
     });
     
-    const filenames = response.data?.filenames || response.filenames;
-    if (!filenames || filenames.length === 0) {
-        console.error("文件上传成功，但未找到 filenames", response);
-        return;
+    console.log("上传响应数据:", response);
+    console.log("上传的文件信息:", file);
+    
+    // 根据上传返回的数据更新 inputValues 或其他状态
+    if (response && response.data && response.data.filenames) {
+        // 遍历上传的所有文件名
+        response.data.filenames.forEach(filename => {
+            let baseUrl = 'http://8.137.39.2:5000/inputs/';
+            const fileUrl = `${baseUrl}${filename}`;
+            console.log("输出fileUrl", fileUrl);
+            
+            // 更新 inputValues 中以 filename 作为键的字段
+            inputValues.value[filename] = fileUrl;  // 使用 filename 作为键
+            
+            // 使用 store 来 dispatch
+            store.dispatch('fileManagement/addUploadedFile', {filename, url: fileUrl});
+            console.log("输出filename", filename); // 现在会输出正确的 fileUrl
+            console.log("输出fileUrl", inputValues.value[filename]); // 现在会输出正确的 fileUrl
+        });
+    } else {
+        console.error('文件上传成功，但未找到 filenames');
     }
-    
-    const fileUrl = `http://8.137.39.2:5000/inputs/${filenames[0]}`;
-    console.log("生成的文件URL:", fileUrl);
-    
-    // 确保 identifier 的值是一个数组，用于存储多个文件
-    inputValues.value[identifier] = inputValues.value[identifier] || [];
-    
-    // 检查是否已经存在相同的文件，避免重复添加
-    const isDuplicate = inputValues.value[identifier].some(item => item.url === fileUrl);
-    if (isDuplicate) {
-        console.warn("重复的文件已上传:", fileUrl);
-        return;
-    }
-    
-    // 将当前文件信息追加到数组中
-    inputValues.value[identifier].push({
-        name: file.name,
-        size: file.size,
-        url: fileUrl,
-        Identifier: identifier, // 确保保存上传时的参数标识符
-    });
-    
-    // 输出绑定的文件集合
-    console.log("当前 identifier 累积的文件信息:", inputValues.value[identifier]);
 }
 
 
+// 自定义上传请求
+function customUploadRequest({file, data}) {
+    // 创建 FormData 对象来包含文件和额外的数据
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('identifier', data.identifier);
+    
+    axios.post('/api/upload', formData)
+        .then(response => handleUploadSuccess(response, file))
+        .catch(error => handleUploadError(error, file));
+}
+
+// 上传失败的回调
+function handleUploadError(error, file) {
+    ElMessage({
+        message: 'File upload failed!',
+        type: 'error',
+    })
+    
+    console.error("文件上传失败回调触发:");
+    console.error("错误信息:", error);
+    console.error("上传的文件信息:", file);
+}
+
+// 执行操作的函数
+/*
+async function executeOperator() {
+    console.log("执行算子", inputValues.value);
+    if (!operator.value) {
+        console.error('未选择操作符，无法执行算子');
+        return;
+    }
+
+    const requestData = {
+        identifier: operator.value.Identifier,
+        mode: mode.value, // 使用用户选择的执行模式
+        inputs: {
+            INPUT: {
+                type: 'reference',
+                href: Object.values(inputValues.value)
+            }
+        }
+    };
+    console.log("准备发送的请求数据:", requestData);
+
+    try {
+        const response = await axios.post('/api/jobs', requestData);
+        console.log("执行成功，响应数据:", response.data);
+    } catch (error) {
+        console.error("执行失败:", error);
+    }
+}
+*/
 // 执行操作的函数
 async function executeOperator() {
     console.log("执行算子", inputValues.value);
@@ -281,30 +301,32 @@ async function executeOperator() {
     const inputs = {};
     operator.value.Input.forEach(input => {
         const identifier = input.Identifier;
-        console.log("@@@@@@input.Identifier", identifier);
         const value = inputValues.value[identifier];
-        console.log("@@@@@@inputValues.value[identifier]", value);
-        
-        if (identifier !== 'OUTPUT' && value) {
+        console.log(input.DataType);
+        // 过滤掉 INPUT 和 OUTPUT 参数
+        if ((identifier !== 'INPUT' && identifier !== 'OUTPUT') && value) {
+            
             if (input.DataType === "ComplexData") {
-                console.log("@@@@@@value22222", value);
-                
-                // 获取第一个文件的 url 作为 href
-                const href = value[0]?.url;  // 这里假设 value 是一个数组，取第一个文件的 URL
-                if (href) {
-                    inputs[identifier] = {
-                        type: 'reference',
-                        href: href
-                    };
-                } else {
-                    console.warn("文件没有 URL:", value);
-                }
+                inputs[identifier] = {
+                    type: 'reference',
+                    href: value
+                };
             } else {
                 inputs[identifier] = value;
             }
+            // if (input.DataType === "ComplexData") {
+            //     // 如果是 ComplexData 类型，传递一个包含 type: 'reference' 和 href 的对象
+            //     inputs[identifier] = {
+            //         type: 'reference',
+            //         href: value // 假设这是文件上传后的 URL
+            //     };
+            // } else {
+            //     // 对于其他类型，直接传递 value
+            //     inputs[identifier] = value;
+            // }
+            
         }
     });
-    
     
     const requestData = {
         identifier: operator.value.Identifier,
@@ -322,9 +344,9 @@ async function executeOperator() {
     }
 }
 
+
 // 监控输入值以动态更新按钮状态
 watch(inputValues, () => {
-    let isValidInputs;
     isValidInputs.value = Object.values(inputValues.value).every(value => value !== '');
 });
 </script>

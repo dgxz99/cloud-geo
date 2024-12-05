@@ -1,3 +1,5 @@
+// src/tianditu.js
+
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -20,13 +22,29 @@ export function initializeTianditu(container) { // 接收 map 容器
         });
     };
 
-    // Tianditu Layers
-    const vecLayer = createTileLayer('vec', 'vec');
-    const imgLayer = createTileLayer('img', 'img');
-    const terLayer = createTileLayer('ter', 'ter');
-    const vecAnnotationLayer = createTileLayer('cva', 'cva');
-    const imgAnnotationLayer = createTileLayer('cia', 'cia');
-    const terAnnotationLayer = createTileLayer('cta', 'cta');
+// Tianditu Layers
+    const vecLayer = L.layerGroup([
+        createTileLayer('vec', 'vec'), // 矢量底图
+        createTileLayer('cva', 'cva'), // 矢量注记
+    ]);
+
+    const imgLayer = L.layerGroup([
+        createTileLayer('img', 'img'), // 影像底图
+        createTileLayer('cia', 'cia'), // 影像注记
+    ]);
+
+    const terLayer = L.layerGroup([
+        createTileLayer('ter', 'ter'), // 地形底图
+        createTileLayer('cta', 'cta'), // 地形注记
+    ]);
+
+
+    // const vecLayer = createTileLayer('vec', 'vec');
+    // const imgLayer = createTileLayer('img', 'img');
+    // const terLayer = createTileLayer('ter', 'ter');
+    // const vecAnnotationLayer = createTileLayer('cva', 'cva');
+    // const imgAnnotationLayer = createTileLayer('cia', 'cia');
+    // const terAnnotationLayer = createTileLayer('cta', 'cta');
 
     // OpenStreetMap Layer with English Labels
     const osmLayer = L.tileLayer('https://tile.openstreetmap.de/tiles/osmde/{z}/{x}/{y}.png', {
@@ -38,8 +56,8 @@ export function initializeTianditu(container) { // 接收 map 容器
     });
 
     const esriSatelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-    attribution: '&copy; <a href="https://www.esri.com/">Esri</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-});
+        attribution: '&copy; <a href="https://www.esri.com/">Esri</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    });
 
 
     // Mapbox Layer (requires an access token)
@@ -136,7 +154,6 @@ export function initializeTianditu(container) { // 接收 map 容器
     // });
 
 
-
     //  const cartoDBLayerVoyager = L.tileLayer('https://{s}.basemaps.cartocdn.com/voyager/{z}/{x}/{y}.png', {
     //     attribution: '&copy; <a href="https://carto.com/attributions">CartoDB</a>'
     // });
@@ -164,8 +181,11 @@ export function initializeTianditu(container) { // 接收 map 容器
 
     // Base layers to switch between
     const baseLayers = {
+        "Esri Topographic": esriTopographicLayer, // Esri Topographic
+        "Esri Streets": esriStreetsLayer, // Esri Streets
+        "Esri NatGeo": esriNatGeoLayer, // Esri National Geographic
         "OSM Map": osmLayer, // OpenStreetMap
-        "OSM Satellite Map":esriSatelliteLayer,
+        "OSM Satellite Map": esriSatelliteLayer,
         "Vector Map": vecLayer, // Tianditu Vector Map
         "Satellite Imagery": imgLayer, // Tianditu Satellite Imagery
         "Topographic Map": terLayer, // Tianditu Topographic Map
@@ -180,25 +200,24 @@ export function initializeTianditu(container) { // 接收 map 容器
         // "Stamen Terrain": stamenTerrainLayer, // Stamen Terrain
         // "Stamen Toner": stamenTonerLayer, // Stamen Toner
         // "Stamen Watercolor": stamenWatercolorLayer, // Stamen Watercolor
-        "Esri Streets": esriStreetsLayer, // Esri Streets
-        "Esri Topographic": esriTopographicLayer, // Esri Topographic
-        "Esri NatGeo": esriNatGeoLayer, // Esri National Geographic
+
         // "OpenStreetMap Bright": openStreetMapBrightLayer, // OpenStreetMap Bright
         // "OpenStreetMap Positron": openStreetMapPositronLayer, // OpenStreetMap Positron
     };
 
     // Overlay layers (annotations)
-    const overlayLayers = {
-        "Vector Annotations": vecAnnotationLayer, // Tianditu Vector Annotations
-        "Satellite Annotations": imgAnnotationLayer, // Tianditu Satellite Annotations
-        "Topographic Annotations": terAnnotationLayer // Tianditu Topographic Annotations
-    };
+    // const overlayLayers = {
+    //     "Vector Annotations": vecAnnotationLayer, // Tianditu Vector Annotations
+    //     "Satellite Annotations": imgAnnotationLayer, // Tianditu Satellite Annotations
+    //     "Topographic Annotations": terAnnotationLayer // Tianditu Topographic Annotations
+    // };
 
     // Add the layers control to the map
-    L.control.layers(baseLayers, overlayLayers).addTo(map);
-
+    // L.control.layers(baseLayers, overlayLayers).addTo(map);
+// 将底图切换控件添加到地图
+    L.control.layers(baseLayers).addTo(map);
     // Default map layer
-    osmLayer.addTo(map); // 默认加载 OSM 图层
+    esriTopographicLayer.addTo(map); // 默认加载 OSM 图层
 
     return map;
 }

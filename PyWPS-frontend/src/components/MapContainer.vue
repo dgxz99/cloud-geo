@@ -3,8 +3,7 @@
 </template>
 
 <script>
-import L from 'leaflet';
-import { initializeTianditu } from '@/tianditu';
+import {initializeTianditu} from '@/tianditu'; // 天地图初始化工具
 
 export default {
     name: 'MapContainer',
@@ -16,6 +15,8 @@ export default {
     mounted() {
         // 初始化天地图，并将返回的地图实例赋值给 map 属性
         this.map = initializeTianditu(this.$refs.mapContainer);
+        
+        
     },
     beforeUnmount() {
         // 组件卸载前销毁地图实例，避免内存泄漏
@@ -33,50 +34,22 @@ export default {
          */
         addGeoJsonToMap(geoJsonData, zoomToData = true, name = '') {
             if (!this.map) return;
-
+            
+            // eslint-disable-next-line no-undef
             const geoJsonLayer = L.geoJSON(geoJsonData);
             geoJsonLayer.name = name || `GeoJSON Layer ${Date.now()}`; // 使用传递的文件名作为图层名称
-
+            
             geoJsonLayer.addTo(this.map);
-
+            
             if (zoomToData) {
                 this.map.fitBounds(geoJsonLayer.getBounds());
             }
-
+            
             // 触发图层添加的事件，并传递图层信息给父组件
-            this.$emit('layer-added', { name: geoJsonLayer.name, layer: geoJsonLayer });
+            this.$emit('layer-added', {name: geoJsonLayer.name, layer: geoJsonLayer});
         },
-
-
-        /**
-         * 向地图中添加栅格影像图层
-         * @param {string} urlTemplate - 栅格图层的 URL 模板
-         * @param {string} [name=''] - 图层的名称
-         */
-        addRasterLayer(urlTemplate, name = '') {
-            if (!this.map) return;
-
-            const rasterLayer = L.tileLayer(urlTemplate, {
-                subdomains: ['0', '1', '2', '3', '4', '5', '6', '7'],
-            });
-
-            rasterLayer.name = name || `Raster Layer ${Date.now()}`; // 使用传递的名称作为图层名称
-            rasterLayer.addTo(this.map);
-
-            // 触发图层添加的事件，并传递图层信息给父组件
-            this.$emit('layer-added', { name: rasterLayer.name, layer: rasterLayer });
-        },
-
-        /**
-         * 从地图中移除指定的图层
-         * @param {Object} layer - 要移除的图层对象
-         */
-        removeLayer(layer) {
-            if (this.map && layer) {
-                this.map.removeLayer(layer);
-            }
-        }
     }
+    
 }
 </script>
 
@@ -85,6 +58,4 @@ export default {
     width: 100%;
     height: 100%;
 }
-
-
 </style>
