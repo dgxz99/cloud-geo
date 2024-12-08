@@ -1,49 +1,48 @@
-# 基于Spring Cloud和PyWPS + PyQGIS的分布式在线地理信息服务
+# CloudGeoPy's distributed online geographic information service
 
-本项目通过使用Spring Cloud配合pyWPS搭建集群，实现发布一个分布式的在线地理信息处理的在线云服务（分布式WPS服务）。
+This project realizes publishing a distributed online cloud service (distributed WPS service) for online geographic information processing by using Spring Cloud with WPS-Service to build a cluster.
 
-## 1，架构概述
+## 1, Architecture Overview
 
-整体架构图如下：
+The overall architecture diagram is shown below:
 
-![image-20240607200918071](https://swsk33-note.oss-cn-shanghai.aliyuncs.com/image-20240607200918071.png)
+![image-20241207103512708](https://dg-typora.oss-cn-chengdu.aliyuncs.com/image-20241207103512708.png)
 
-上图中每个部分都是一个单独的节点，分别如下：
+Each part of the above diagram is a separate node as follows:
 
-- `Consul`是服务注册中心节点，它能够使多个服务模块集群注册到该注册中心，并提供服务发现功能
-- 网关是基于Spring Cloud Gateway搭建的网关节点，位于最外层接收全部用户的请求，在接收到请求后，它能够从注册中心获取已注册服务的集群信息，包括一个集群中所有节点，然后再通过线性轮询的方式实现负载均衡，将用户请求平摊转发至一个集群的不同节点上
-- 每个PyWPS节点将会提供完整的WPS地理处理服务，它们在启动时会自动注册到Consul注册中心中去，然后接收来自Gateway转发的、符合OGC WPS规范的HTTP请求，进而调用PyQGIS的相关算子完成数据处理
-- 文件服务节点提供了文件上传、下载的API，并且可以根据文件直链获取文件，当用户上传文件时，能够获取文件直链，并将该直链作为输入参数传递给PyWPS算子，反之当PyWPS完成了算子的计算时，也会将结果文件上传至文件服务，并返回结果文件的直链给用户，所有的文件存放在MinIO或者MinIO集群中
+- `Consul` is the service registry node, which enables multiple clusters of service modules to register to this registry and provides service discovery functionality
+- The gateway is a gateway node based on Spring Cloud Gateway, which is located at the outermost layer to receive all user requests. After receiving a request, it can get the cluster information of the registered services from the registry, including all the nodes in a cluster, and then implement load balancing through linear polling to evenly distribute user requests to different nodes in a cluster.
+- Each WPS-Service node will provide complete WPS geoprocessing services, they will be automatically registered to the Consul registry at startup, and then receive HTTP requests forwarded by the Gateway, which conform to the OGC WPS specification, and then call the relevant PyQGIS algorithms to complete the data processing.
+- The file service node provides API for file uploading and downloading, and can obtain files according to the file direct chain. When the user uploads a file, he/she can obtain the file direct chain and pass the direct chain as an input parameter to the WPS-Service arithmetic operator, and vice versa, when the WPS-Service completes the arithmetic calculations, it will also upload the resultant file to the file service and return the resultant file's direct chain to the user, and all the files are stored in MinIO or MinIO cluster.
 
+## 2, Calling Example
 
-## 2，调用示例
+The information of all the nodes deployed in the experimental environment is as follows:
 
-实验环境部署的所有节点信息如下：
+| Docker Container Name | Service                   | Address                    | Port |
+| --------------------- | ------------------------- | -------------------------- | ---- |
+| consul                | Consul Registry           | 202.114.148.161 (intranet) | 8500 |
+| minio                 | MinIO File Object Storage | 202.114.148.161 (intranet) | 9000 |
+| redis                 | Redis Cache Server        | 202.114.148.161 (intranet) | 6379 |
+| wps-gateway           | Spring Cloud Gateway node | 127.0.0.1                  | 9000 |
+| wps-file-storage      | File Service node         | 127.0.0.1                  | 8800 |
+| wps-service1          | WPS-Service node 1        | 127.0.0.1                  | 8001 |
+| wps-service2          | WPS-Service node 2        | 127.0.0.1                  | 8002 |
+| wps-service3          | WPS-Service node 3        | 127.0.0.1                  | 8003 |
 
-| Docker容器名称   | 服务                     | 地址                    | 端口 |
-| ---------------- | ------------------------ | ----------------------- | ---- |
-| consul           | Consul注册中心           | 202.114.148.161（内网） | 8500 |
-| minio            | MinIO文件对象储存        | 202.114.148.161（内网） | 9000 |
-| redis            | Redis缓存服务器          | 202.114.148.161（内网） | 6379 |
-| wps-gateway      | Spring Cloud Gateway节点 | 127.0.0.1               | 9000 |
-| wps-file-storage | 文件服务节点             | 127.0.0.1               | 8800 |
-| pywps-1          | PyWPS节点1               | 127.0.0.1               | 8001 |
-| pywps-2          | PyWPS节点2               | 127.0.0.1               | 8002 |
-| pywps-3          | PyWPS节点3               | 127.0.0.1               | 8003 |
+The above three `wps-service-n` constitute a complete WPS service cluster, in addition to Redis, MinIO, gateway, file services can also be set up as a cluster if necessary.
 
-上述三个`pywps-n`构成一个完整的WPS服务集群，除此之外若有需要，也可以将Redis、MinIO、网关、文件服务搭建为集群。
+### (1) Service Registration
 
-### (1) 服务注册
+When all the above services are started, the WPS-Service server will automatically register with the Consul registry, there is no need for us to register them manually, you can view all the registered services on the Consul console page (browser access `202.114.148.161:8500`):
 
-当上述所有服务启动时，PyWPS服务端会自动地注册到Consul注册中心，无需我们手动注册，可以在Consul控制台页面（浏览器访问`202.114.148.161:8500`）查看全部已注册服务：
+![image-20241207104101458](https://dg-typora.oss-cn-chengdu.aliyuncs.com/image-20241207104101458.png)
 
-![image-20240606105106341](https://swsk33-note.oss-cn-shanghai.aliyuncs.com/image-20240606105106341.png)
-
-进入服务，我们就可以看到一个集群中全部节点信息：
+Entering the service, we can see the full node information in a cluster:
 
 ![image-20240606105134191](https://swsk33-note.oss-cn-shanghai.aliyuncs.com/image-20240606105134191.png)
 
-在Spring Boot中，只需集成Consul Starter并加以配置，即可在启动时自动将服务注册到Consul中，在PyWPS中，集成`py-consul`实现将服务注册到Consul中：
+In Spring Boot, just integrate Consul Starter and configure it to automatically register services into Consul at startup, and in WPS-Service, integrate `py-consul` to realize registering services into Consul:
 
 ```python
 import os
@@ -52,19 +51,19 @@ from consul import Consul
 
 config = get_config()
 
-# Consul地址和端口
+# Consul address and port
 consul_host = config.get("consul", "consul_ip")
 consul_port = config.getint("consul", "consul_port")
 
-# 全局唯一Consul客户端对象
+# Globally unique Consul client object
 consul_client = Consul(host=consul_host, port=consul_port)
 
 
-# 注册服务
+# Registration Services
 def register_consul(service_name, service_address, service_port):
-	# 服务ID，每个节点应该唯一
+	# Service ID, which should be unique per node
 	service_id = f'{service_name}-{service_address}-{service_port}'
-	# 注册服务
+	# register services
 	consul_client.agent.service.register(
 		service_id=service_id,
 		name=service_name,
@@ -78,7 +77,7 @@ def register_consul(service_name, service_address, service_port):
 		})
 
 
-# 注销节点
+# deregistration node
 def deregister_consul(service_name, service_address, service_port):
 	service_id = f'{service_name}-{service_address}-{service_port}'
 	consul_client.agent.service.deregister(service_id)
@@ -87,32 +86,32 @@ def deregister_consul(service_name, service_address, service_port):
 然后在入口文件中完成启动时的注册和退出应用程序时自动注销：
 
 ```python
-# 注册到Consul
+# Register to Consul
 register_consul(service_name, service_ip, service_port)
-# 在服务端关闭时自动注销服务
+# Automatic service logout on server shutdown
 atexit.register(deregister_consul, service_name, service_ip, service_port)
 ```
 
-### (2) 接口说明
+### (2) Interface Description
 
-所有的请求都是通过网关进行转发，不同的路径前缀能够路由到不同的服务上，在本地部署时网关的地址为：`127.0.0.1:9000`，下面将对所有的API路径进行说明，其中`{}`包围的表示参数。
+All requests are forwarded through the gateway, and different path prefixes are able to route to different services. The address of the gateway when deployed locally is `127.0.0.1:9000`, and all the API paths are described below, where `{}` surrounded by denotes parameters.
 
-首先是PyWPS服务，该服务路径前缀为`/api/wps`，后接的路径及其请求方式，均符合WPS标准：
+The first is the WPS-Service service, which is prefixed with `/api/wps`, followed by the path and its request method, all of which conform to the WPS standard:
 
-- `/api/wps/processes` GET请求，获取全部算子的信息，是WPS GetCapabilities操作
-- `/api/wps/processes/{identifier}` GET请求，获取某个具体的算子信息，包括算子参数等等，是WPS DescribeProcess操作
-- `/api/wps/jobs` POST请求，调用执行一个算子，请求体需要符合WPS Execute中的规范
-- `/api/wps/jobs/{job-id}` GET请求，用于获取一个异步执行的算子的状态或者执行结果
+- The `/api/wps/processes` GET request for information about the full set of operators is the WPS GetCapabilities operation
+- `/api/wps/processes/{identifier}` GET request, get a specific operator information, including operator parameters and so on, is the WPS DescribeProcess operation.
+- `/api/wps/jobs` POST request, call the execution of an operator, the request body needs to conform to the specification in WPS Execute.
+- `/api/wps/jobs/{job-id}` GET request to get the status or execution result of an asynchronously executed operator.
 
-然后是文件服务：
+Then there is the file service:
 
-- `/api/file/upload` PUT请求，上传文件，上传成功返回上传后的文件信息，包括文件`id`和扩展名，其中上传后文件名称将自动生成
-- `/upload-force-name/{name}` PUT请求，上传文件，指定上传后的文件名称
-- `/api/delete/{id}` DELETE请求，删除已上传文件，指定文件`id`
-- `/api/find/{id}` GET请求，查询文件的元数据，指定文件`id`
-- `/api/retrieve/{name}` GET请求，下载文件，指定文件全名，即`id.扩展名`的形式
+- `/api/file/upload` PUT request to upload a file, successful upload returns information about the uploaded file, including the file `id` and extension, where the name of the file will be auto-generated after uploading
+- `/upload-force-name/{name}` PUT request, upload a file, specify the name of the uploaded file.
+- `/api/delete/{id}` DELETE request, delete the uploaded file, specify the `id` of the file.
+- `/api/find/{id}` GET request, query the metadata of a file, specify the file `id`.
+- `/api/retrieve/{name}` GET request to download a file, specifying the full name of the file in the form `id.extension`
 
-网关的配置文件如下：
+The configuration file for the gateway is as follows:
 
 ```yaml
 server:
@@ -142,25 +141,25 @@ spring:
         locator:
           enabled: true
       routes:
-        # PyWPS服务
+        # WPS Service
         - id: "py-wps"
           uri: "lb://py-wps"
           predicates:
             - "Path=/api/wps/**"
           filters:
             - RewritePath=/api/wps/(?<remaining>.*), /${remaining}
-        # 分布式文件服务
+        # Distributed file service
         - id: "file-upload"
           uri: "lb://wps-file-storage"
           predicates:
             - "Path=/api/file/**"
 ```
 
-### (3) 调用服务-同步模式
+### (3) Invoking service-synchronization mode
 
-用户需要使用符合OGC WPS标准的HTTP请求，来调用对应的算子，只需向**网关**发送POST请求即可。
+The user needs to use an OGC WPS compliant HTTP request to invoke the corresponding operator by simply sending a POST request to the **Gateway**.
 
-首先用户需要上传输入的文件到文件服务API中，假设现有一个`point.zip`文件，是一个点数据的Shapefile压缩包，这时用户需要对`127.0.0.1:9000/api/file/upload`发起PUT请求，请求体为`form-data`形式，仅包含要上传的文件条目，`key`指定为`file`，`value`指定为要上传的文件`point.zip`，上传成功得到结果如下：
+First the user needs to upload the input file to the file service API, suppose there is an existing `point.zip` file, which is a Shapefile compressed package of point data, then the user needs to launch a PUT request to `127.0.0.1:9000/api/file/upload`, the request body is in the form of `form-data` and only The request body is in the form of `form-data`, which only contains the file entry to be uploaded, the `key` is specified as `file`, and the `value` is specified as the file to be uploaded, `point.zip`, and the upload succeeds to get the result as follows:
 
 ```json
 {
@@ -176,14 +175,14 @@ spring:
 }
 ```
 
-上述`data`字段为实际的上传后的文件信息，其中：
+The above `data` field is the actual uploaded file information, where:
 
-- `name` 表示上传后的文件`id`
-- `format` 文件的扩展名
+- `name` indicates the `id` of the uploaded file
+- `format` the extension of the file
 
-此时，用户可以得到上传后，文件直链为：`http://127.0.0.1:9000/api/file/retrieve/7c4a5e4e6b844d0aa27dfaaf27b4dbf1.tif`
+At this point, the user can get the direct link to the uploaded file: `http://127.0.0.1:9000/api/file/retrieve/7c4a5e4e6b844d0aa27dfaaf27b4dbf1.tif`.
 
-然后调用对应的WPS服务，向地址`127.0.0.1:9000/api/wps/jobs`发起POST请求，并使用我们的文件直链作为参数输入，请求体内容示例：
+Then call the corresponding WPS service to launch a POST request to address `127.0.0.1:9000/api/wps/jobs`, and use our file direct link as the parameter input, the content of the request body example:
 
 ```json
 {
@@ -198,9 +197,9 @@ spring:
 }
 ```
 
-该请求调用了一个OTB波段计算的算子，并全部使用默认参数，具体数据通过指定文件URL直链的方式传递。
+The request invokes an operator for OTB band calculations with all default parameters, and specific data is passed by specifying a direct link to the file URL.
 
-若算子正常执行，则会得到算子执行结果作为响应：
+If the operator executes properly, the result of the operator execution is obtained as a response:
 
 ```json
 {
@@ -212,7 +211,7 @@ spring:
         "completionTime": "2024-12-03 19:03:57.201",
         "expirationTime": "2024-12-04 19:03:57.201",
         "percentCompleted": "100",
-        "message": "PyWPS Process BandMath finished",
+        "message": "WPS-Service Process BandMath finished",
         "output": {
             "out": "http://localhost:5000/outputs/otb-BandMath-out-c13a2fde-16ba-4777-9fde-55e62ff72e47.tif"
         }
@@ -220,25 +219,25 @@ spring:
 }
 ```
 
-每个PyWPS都会发布全部的QGIS算子，也就是说每个调用器节点都发布的是完整的WPS服务，用户通过WPS规范的请求调用时，使用`identifier`字段即可指定需要调用的算子。调用之前也可以通过对应的API查看所有算子或者一个算子的详细信息来查看对应算子的参数结构。
+Each WPS-Service publishes all QGIS operators, i.e., each caller node publishes the complete WPS service, and the user can specify the operator to be called by using the `identifier` field when calling via a request from the WPS specification. You can also view the parameter structure of the corresponding operator by viewing the details of all operators or one operator through the corresponding API before calling.
 
-除此之外，WPS运行算子得到的结果文件，也会上传至文件服务器并得到直链，然后返回。
+In addition, the result file obtained by WPS when running the operator is also uploaded to the file server and returned as a direct link.
 
-这里使用`12`个线程，每个线程发起`3`次请求模拟并发访问，那么网关则会将所有请求平摊到上述三个不同的调用器节点上去，实现负载均衡。
+Here, `12` threads are used, each thread initiates `3` requests to simulate concurrent access, and then the gateway spreads all the requests to the three different caller nodes mentioned above to achieve load balancing.
 
-需要注意的是，这里使用的是同步调用的方式，因此每个请求发出后，会挂起请求直到算子处理和计算完成之后返回结果，对于较为复杂、处理时间很长的算子来说，推荐使用异步调用的模式。
+It should be noted that this is a synchronous call, so after each request is made, the request will hang until the operator has finished processing and calculating and returned the result, for more complex operators with long processing times, it is recommended to use the asynchronous call mode.
 
-### (4) 调用服务-异步模式
+### (4) Calling a service - asynchronous mode
 
-WPS 2.0标准中，新增了异步调用的方式，对于一些非常复杂的处理任务，服务端可能需要非常长的时间才能够完成，这时我们就需要使用异步调用模式来执行一个算子，异步调用算子时，服务器会在后台执行算子，然后用户通过`GetStatus`和`GetResult`操作来查询本次调用是否结束
+In the WPS 2.0 standard, the asynchronous calling mode has been added. For some very complicated processing tasks, the server side may need a very long time to complete, then we need to use the asynchronous calling mode to execute an operator. When calling an operator asynchronously, the server will execute the operator in the background, and then the user can use the `GetStatus` and `GetResult` operations to The user can then query whether the call has finished by using the `GetStatus` and `GetResult` operations.
 
 ![image-20240607202056908](https://swsk33-note.oss-cn-shanghai.aliyuncs.com/image-20240607202056908.png)
 
-不过在分布式场景下，PyWPS服务是集群部署的，用户每一次可能请求到不同的节点上，因此如果按照默认方式，将JobId存放在节点本地，则可能在后续GetStatus时导致找不到该进程的问题。
+However, in distributed scenarios, WPS-Service is deployed in clusters, and users may request to different nodes each time. Therefore, if the default way is to store the JobId locally in the node, it may lead to the problem of not being able to find the process in the subsequent GetStatus.
 
-因此此处引入Redis数据库，所有的算子异步执行的进程ID、执行状态、结果等等信息，都会存放到Redis数据库中并实时同步，用户也通过对应的接口去获取算子执行状态、结果时，PyWPS也是从Redis中去获取的，这样无需关心用户的请求转发到了哪个节点，进程状态、结果都统一从Redis中获取。
+Therefore, the Redis database is introduced here, all the process IDs, execution status, results and other information of the asynchronous execution of the operator will be stored in the Redis database and synchronized in real time, and the user can also get the execution status and results of the operator through the corresponding interface, and the WPS-Service also gets them from Redis, so that there is no need to care about which node the user's request has been forwarded to. In this way, it doesn't need to care about which node the user's request is forwarded to, and the process status and results are uniformly obtained from Redis.
 
-在进行异步调用时，需要在请求体中设定`mode`字段为`async`如下：
+When making asynchronous calls, you need to set the `mode` field in the request body to `async` as follows:
 
 ```json
 {
@@ -254,7 +253,7 @@ WPS 2.0标准中，新增了异步调用的方式，对于一些非常复杂的�
 }
 ```
 
-这时，WPS服务端不会立即返回结果，而是返回一个JobId：
+At this point, the WPS server does not return the result immediately, but returns a JobId:
 
 ```json
 {
@@ -268,7 +267,7 @@ WPS 2.0标准中，新增了异步调用的方式，对于一些非常复杂的�
 }
 ```
 
-要想获取算子执行状态或者结果，用户可以使用上述JobId进行查询，向`http://127.0.0.1:9000/api/wps/job/53972f2eaffc4a92916aa604b9504625`发起GET请求，结果如下：
+To get the operator execution status or result, the user can make a query using the above JobId and make a GET request to `http://127.0.0.1:9000/api/wps/job/53972f2eaffc4a92916aa604b9504625` with the following result:
 
 ```json
 {
@@ -281,7 +280,7 @@ WPS 2.0标准中，新增了异步调用的方式，对于一些非常复杂的�
       "completionTime": "2024-12-03 19:04:19.936",
       "expirationTime": "2024-12-04 19:04:19.936",
       "percentCompleted": "100",
-      "message": "PyWPS Process BandMath finished",
+      "message": "WPS-Service Process BandMath finished",
       "output": {
         "out": "http://localhost:5000/outputs/otb-BandMath-out-cbb612a9-576a-4770-ad1f-17e4280e811c.tif"
       }
@@ -290,60 +289,25 @@ WPS 2.0标准中，新增了异步调用的方式，对于一些非常复杂的�
 }
 ```
 
-可见`status`字段为`Succeeded`，且包含`result`字段，说明算子已经异步执行完成，并得到了结果。
+It can be seen that the `status` field is `Succeeded` and contains the `result` field, indicating that the operator has been executed asynchronously and a result has been obtained.
 
-## 3，Spring Cloud相关简介
+## 3, WPS-Service and PyQGIS Related Introduction
 
-Spring Cloud提供了一个完整的分布式微服务解决方案和实现，除了第一代实现Spring Cloud Netflix之外，还有成熟的第二代实现Spring Cloud Alibaba，当然Spring Cloud本身也在后续提供了一些组件的实现。
+**WPS-Service** in the main use of the PyWPS framework, PyWPS is the OGC Web Processing Service (**OGC ** **WPS **) standard server-side implementation of the use of **Python ** programming language.
 
-本项目所使用的相关组件如下。
+The official documentation is located at https://WPS-Service.readthedocs.io/en/latest/index.html
 
-### (1) Consul注册中心
+The use of PyWPS server-side, you need to combine the use of python web framework, combined with the official case, choose to use the flask framework, the use of the framework to create API interfaces, to facilitate the user to directly call the PyWPS service. Roughly the process is shown in the following figure:
 
-在分布式微服务中，所有的模块不再全部写在一个项目中，一个大型应用可能被拆分成多个模块并部署至不同的服务器节点上，这就需要面临下列问题：
+![image-20241207105256146](https://dg-typora.oss-cn-chengdu.aliyuncs.com/image-20241207105256146.png)
 
-- 远程调用：模块之间存在依赖时，需要远程调用
-- 集群部署：同一个功能模块可以部署成集群，即有多个节点构成
+When the process is registered, here in the PyWPS service, the processing of the process will be carried out, such as: turning into the corresponding PyWPS description of the standard information; when the user calls the operator, it will be carried out in the input file checksum, the execution of the operator, the output file results and so on. As long as the process is successfully injected, PyWPS will automatically process some operations.
 
-如果没有注册中心，那么服务之间只能直接进行调用：
+In QGIS provides a lot of open-source operators, so the open-source operators in PyQGIS will be converted into the process in PyWPS to realize the online processing of geographic data.
 
-![](https://swsk33-note.oss-cn-shanghai.aliyuncs.com/image-20220312225248419.png)
+![image-20241207105800914](https://dg-typora.oss-cn-chengdu.aliyuncs.com/image-20241207105800914.png)
 
-这样如果服务地址发生变化，或者临时增加、减少节点，那么就需要修改每个服务代码或者配置。
+Unified access to third-party operators through PyQGIS.
 
-因此引入注册中心，让每个服务都把自己注册进去，调用时要从注册中心去找服务：
-
-![](https://swsk33-note.oss-cn-shanghai.aliyuncs.com/image-20220312225536773.png)
-
-Consul是一个由Go语言开发的、高性能的分布式网络服务，常常作为我们的服务注册和发现中心使用，作为注册中心使用简单，性能好，并且支持多种语言开发的微服务进行注册，占用资源也很小。
-
-上图中，每一个服务都代表着**一个完整的后端应用程序，或者多个后端程序构成的集群**，只不过在分布式微服务中，通常按照一个应用程序的功能，将每个功能作为一个单独的Spring Boot模块进行开发和部署，且一个功能可以以单节点或者集群形式部署，Consul支持不限制的服务数量进行注册，但是不支持对服务进行分类，也因此我们通常需要按照规范配置每个服务的名称，增强可读性。
-
-### (2) Spring Cloud Gateway
-
-当我们部署了多个服务集群之后，用户需要知道每一个服务的地址才能够进行调用，因此**网关**在微服务中也是非常重要的。
-
-使用Spring Cloud Gateway，用户（前端）的请求只需全部交给Gateway即可，Gateway会根据我们设定的条件判断这个请求转发到哪个微服务上，除此之外Gateway还可以去服务注册中心去寻找服务并转发给目标服务。
-
-![](https://swsk33-note.oss-cn-shanghai.aliyuncs.com/image-20220411213209809.png)
-
-Spring Cloud Gateway默认集成了Spring Cloud LoadBalancer组件实现负载均衡，且默认使用线性轮询策略，我们可以通过自己实现`ReactorServiceInstanceLoadBalancer`接口，并将其作为Bean注入IoC容器，来实现自定义负载均衡策略。
-
-## 4，PyWPS与PyQGIS相关简介
-
-**PyWPS**是OGC Web处理服务(**OGC** **WPS**)标准的服务器端实现，使用**Python**编程语言。
-
-官方文档地址：https://pywps.readthedocs.io/en/latest/index.html
-
-使用PyWPS服务端，需要结合python web框架使用，结合官方案例，选择使用flask框架，利用该框架创建API接口，方便用户直接调用PyWPS服务。大致流程如下图所示：
-
-![image-20240510145224459](https://dg-typora.oss-cn-chengdu.aliyuncs.com/image-20240510145224459.png)
-
-当process注册进去之后，在这里PyWPS服务中，会进行process的处理，如：转成对应的PyWPS描述标准信息；当用户调用该算子时，会进行输入文件的校验、算子的执行、输出文件结果等。只要成功注入了process，PyWPS会自动进行一些操作的处理。
-
-在QGIS中提供了很多的开源算子，故将PyQGIS中的开源算子转为PyWPS中process，实现地理数据的在线处理。
-
-![image-20240510162158505](https://dg-typora.oss-cn-chengdu.aliyuncs.com/image-20240510162158505.png)
-
-通过PyQGIS实现第三方算子的统一接入。
+![image-20241203193537254](https://dg-typora.oss-cn-chengdu.aliyuncs.com/image-20241203193537254.png)
 
