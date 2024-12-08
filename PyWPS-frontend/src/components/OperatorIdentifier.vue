@@ -18,7 +18,10 @@
             <h3>Input Parameters</h3>
             <div v-for="input in operator.Input.filter(i => i.Identifier !== 'OUTPUT' && i.Identifier !== 'output')"
                  :key="input.Identifier" class="input-field">
-                <label>{{ input.Title }}</label>
+                <label>
+                    {{ input.Identifier }}
+                    <span v-if="input.minOccurs >= 1" style="color: red;">*</span>
+                </label>
                 <!-- 上传文件控件 -->
                 <el-upload
                     v-if="input.DataType === 'ComplexData'"
@@ -146,12 +149,11 @@
 </template>
 
 <script setup>
-import {ref, watch,} from 'vue';
+import {ref, watch} from 'vue';
 import {useRoute, useRouter} from 'vue-router';
 import {ArrowLeft} from '@element-plus/icons-vue';
 import axios from 'axios';
 import {ElMessage} from 'element-plus';
-
 
 const operator = ref(null);
 const router = useRouter();
@@ -161,6 +163,7 @@ const outputValues = ref({});
 const selectedFormat = ref(null);
 const mode = ref('sync');
 const uploadRefs = ref({}); // 用于存储所有 el-upload 的引用
+const isValidInputs = ref(false); // 用于动态检查输入完整性
 
 watch(
     () => route.params.Identifier,
@@ -226,14 +229,13 @@ function getSupportedFormats(complexData) {
     return complexData?.Format?.map(f => f.mimeType).join(',') || '';
 }
 
-// src/components/OperatorIdentifier.vue
 // 上传成功的回调
 function handleUploadSuccess(response, file, identifier) {
     console.log("文件上传成功回调触发", response);
     console.log("上传的 Identifier:", identifier);  // 确保 identifier 是上传文件时传递的值
     
     ElMessage({
-        message: '文件上传成功！',
+        message: 'Files uploaded successfully！',
         type: 'success',
     });
     
@@ -268,29 +270,35 @@ function handleUploadSuccess(response, file, identifier) {
     console.log("当前 identifier 累积的文件信息:", inputValues.value[identifier]);
 }
 
+function validateInputs() {
+    
+    if (operator.value) {
+        isValidInputs.value = operator.value.Input.every((input) => {
+            const value = inputValues.value[input.Identifier];
+            return input.minOccurs === 0 || (value && value !== '');
+        });
+    }
+}
 
+// <!--src/components/OperatorIdentifier-->
 // 执行操作的函数
 async function executeOperator() {
-    console.log("执行算子", inputValues.value);
-    
-    if (!operator.value) {
-        console.error('未选择操作符，无法执行算子');
+    validateInputs();
+    if (!isValidInputs.value) {
+        ElMessage.error("Please fill in all required parameters!");
         return;
     }
+    console.log("执行操作开始");
     
+    console.log("执行算子", inputValues.value);
     const inputs = {};
     operator.value.Input.forEach(input => {
         const identifier = input.Identifier;
-        console.log("@@@@@@input.Identifier", identifier);
         const value = inputValues.value[identifier];
-        console.log("@@@@@@inputValues.value[identifier]", value);
         
         if (identifier !== 'OUTPUT' && value) {
             if (input.DataType === "ComplexData") {
-                console.log("@@@@@@value22222", value);
-                
-                // 获取第一个文件的 url 作为 href
-                const href = value[0]?.url;  // 这里假设 value 是一个数组，取第一个文件的 URL
+                const href = value[0]?.url;
                 if (href) {
                     inputs[identifier] = {
                         type: 'reference',
@@ -305,7 +313,6 @@ async function executeOperator() {
         }
     });
     
-    
     const requestData = {
         identifier: operator.value.Identifier,
         mode: mode.value,
@@ -317,6 +324,8 @@ async function executeOperator() {
     try {
         const response = await axios.post('/api/jobs', requestData);
         console.log("执行成功，响应数据:", response.data);
+        
+        
     } catch (error) {
         console.error("执行失败:", error);
     }

@@ -1,34 +1,37 @@
 <template>
     <div class="operator-overview">
         <!-- 搜索输入框 -->
-        <el-input v-model="searchQuery" placeholder="搜索算子" clearable @clear="fetchOperators" @input="filterOperators"
-            style="margin-bottom: 10px;">
+        <el-input v-model="searchQuery" placeholder="搜索算子" clearable @clear="fetchOperators"
+                  @input="filterOperators"
+                  style="margin-bottom: 10px;">
         </el-input>
-
+        
         <!-- 表格部分 -->
         <el-table :data="paginatedOperators" stripe>
             <!-- 在Title列添加 show-overflow-tooltip -->
-            <el-table-column prop="Title" label="算子名称" width="180" sortable show-overflow-tooltip></el-table-column>
+            <el-table-column prop="Identifier" label="算子名称" width="180" sortable
+                             show-overflow-tooltip></el-table-column>
             <el-table-column prop="Abstract" label="算子描述" show-overflow-tooltip></el-table-column>
             <el-table-column prop="Identifier" label="标识符" width="150" sortable></el-table-column>
-
+            
             <el-table-column label="操作" width="120">
                 <template #default="scope">
                     <el-button size="mini" @click="handleOperatorClick(scope.row)">查看详情</el-button>
                 </template>
             </el-table-column>
         </el-table>
-
+        
         <!-- 分页部分 -->
-        <el-pagination style="margin-top: 10px;" background layout="total, sizes, prev, pager, next, jumper" :total="totalOperators"
-            :page-size="pageSize" :current-page="currentPage" @size-change="handleSizeChange"
-            @current-change="handleCurrentChange"></el-pagination>
+        <el-pagination style="margin-top: 10px;" background layout="total, sizes, prev, pager, next, jumper"
+                       :total="totalOperators"
+                       :page-size="pageSize" :current-page="currentPage" @size-change="handleSizeChange"
+                       @current-change="handleCurrentChange"></el-pagination>
     </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
-import { useStore } from 'vuex';
+import {ref, computed, onMounted} from 'vue';
+import {useStore} from 'vuex';
 
 const store = useStore();
 

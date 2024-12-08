@@ -12,16 +12,19 @@
             </el-aside>
             <el-main>
                 <!-- 根据不同的状态显示不同的视图 -->
-                <MapContainer v-if="!isKnowledgeGraphVisible && !isOperatorOverviewVisible"/>
+                <MapContainer
+                    v-if="!isKnowledgeGraphVisible && !isOperatorOverviewVisible"/>
                 <KnowledgeGraph v-if="isKnowledgeGraphVisible"/>
                 <OperatorOverview v-if="isOperatorOverviewVisible"/>
             </el-main>
             <!-- 工具箱和算子详情的动态显示 -->
-            <OperatorToolbox v-if="isToolboxVisible && !isOperatorDetailVisible" :toggleToolbox="toggleToolbox"
-                             :is-toolbox-visible="isToolboxVisible"
-                             :is-operator-detail-visible="isOperatorDetailVisible"/>
+            <OperatorToolbox
+                v-if="isToolboxVisible && !isOperatorDetailVisible" :toggleToolbox="toggleToolbox"
+                :is-toolbox-visible="isToolboxVisible"
+                :is-operator-detail-visible="isOperatorDetailVisible"/>
             
-            <OperatorIdentifier v-show="isToolboxVisible && isOperatorDetailVisible"/>
+            <OperatorIdentifier
+                v-show="isToolboxVisible && isOperatorDetailVisible"/>
         
         </el-container>
         

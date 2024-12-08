@@ -1,4 +1,5 @@
 <!-- src/components/OperatorToolbox.vue -->
+<!-- src/components/OperatorToolbox.vue -->
 <template>
     <div class="toolbox-container">
         <el-tabs v-model="activeTab">
@@ -19,7 +20,7 @@
 </template>
 
 <script setup>
-import {ref, computed, defineProps, onMounted} from 'vue';
+import {ref, computed, defineProps} from 'vue';
 import {useStore} from 'vuex';
 // import { useRouter } from 'vue-router';
 const props = defineProps({
