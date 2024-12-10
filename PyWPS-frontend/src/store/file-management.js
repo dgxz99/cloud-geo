@@ -1,4 +1,4 @@
-export const fileManagement = {
+export default {
     namespaced: true,
     state() {
         return {

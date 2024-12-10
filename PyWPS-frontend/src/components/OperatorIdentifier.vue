@@ -103,7 +103,7 @@
                 <el-button v-else-if="output.DataType === 'ComplexData' && !output.hasDownloadButton" target="_blank"
                            @click="executeOperator"
                            type="primary" class="download-button uniform-width">
-                    Download Results
+                    Execute Operator
                 </el-button>
                 
                 <el-select
@@ -149,22 +149,28 @@
 </template>
 
 <script setup>
-import {ref, watch} from 'vue';
+import {inject, ref, watch, defineProps, nextTick} from 'vue';
 import {useRoute, useRouter} from 'vue-router';
 import {ArrowLeft} from '@element-plus/icons-vue';
 import axios from 'axios';
 import {ElMessage} from 'element-plus';
+import {useStore} from 'vuex';
 
 const operator = ref(null);
 const router = useRouter();
 const route = useRoute();
+const store = useStore();
 const inputValues = ref({});
 const outputValues = ref({});
 const selectedFormat = ref(null);
 const mode = ref('sync');
 const uploadRefs = ref({}); // 用于存储所有 el-upload 的引用
 const isValidInputs = ref(false); // 用于动态检查输入完整性
-
+const toolboxControl = inject('toolboxControl');
+// 定义 props
+const props = defineProps({
+    toggleToolbox: Function
+});
 watch(
     () => route.params.Identifier,
     async (newIdentifier) => {
@@ -288,9 +294,23 @@ async function executeOperator() {
         ElMessage.error("Please fill in all required parameters!");
         return;
     }
-    console.log("执行操作开始");
     
-    console.log("执行算子", inputValues.value);
+    console.log("开始执行操作");
+    
+    // 更新 MainLayout 的状态
+    console.log("关闭当前 OperatorIdentifier");
+    props.toggleToolbox(null);
+    
+    if (toolboxControl) {
+        console.log('切换到 Processed Data 标签页');
+        nextTick(() => {
+            toolboxControl.showToolboxAndSwitchToProcessedData();
+        });
+    } else {
+        console.error('toolboxControl 未找到！');
+    }
+    // 调用 Vuex 方法切换标签页
+    console.log("准备执行算子，输入值:", inputValues.value);
     const inputs = {};
     operator.value.Input.forEach(input => {
         const identifier = input.Identifier;
@@ -319,17 +339,62 @@ async function executeOperator() {
         inputs: inputs
     };
     
-    console.log("准备发送的请求数据:", requestData);
+    console.log("发送的请求数据:", requestData);
+    /*
+    try {
+        const response = await axios.post('/api/jobs', requestData);
+        console.log("请求成功，响应数据:", response.data);
+        store.commit('operator/setProcessedData', {
+            ...response.data,
+            operatorName: operator.value.Identifier
+        });
+    } catch (error) {
+        store.commit('operator/setProcessedData', {
+            operatorName: operator.value.Identifier,
+            status: 'failed',
+            errorMessage: error.response?.data || error.message,
+            completionTime: new Date().toISOString(),
+            jobId: null,
+            output: null
+        });
+    }*/
+    const taskId = Date.now(); // 使用时间戳模拟任务ID
+    const initialTask = {
+        jobId: taskId,
+        operatorName: operator.value.Identifier,
+        status: 'running',
+        // completionTime: null,
+        // output: null,
+        // errorMessage: null
+    };
+    
+    // 将初始任务添加到 processedData
+    store.commit('operator/ADD_TASK', initialTask);
     
     try {
         const response = await axios.post('/api/jobs', requestData);
-        console.log("执行成功，响应数据:", response.data);
+        console.log("请求成功，响应数据:", response.data);
         
+        // 假设后端返回任务 ID 和任务状态
+        store.commit('operator/UPDATE_TASK_STATUS', {
+            taskId,
+            status: response.data.status || 'succeeded',
+            completionTime: response.data.completionTime || new Date().toISOString(),
+            errorMessage: null,
+            output: response.data.output // 添加 output 字段
+        });
         
     } catch (error) {
-        console.error("执行失败:", error);
+        store.commit('operator/UPDATE_TASK_STATUS', {
+            taskId,
+            status: 'failed',
+            errorMessage: error.response?.data || error.message, // 提取错误信息
+            completionTime: new Date().toISOString(), // 添加失败时间
+        });
     }
+    
 }
+
 
 // 监控输入值以动态更新按钮状态
 watch(inputValues, () => {
