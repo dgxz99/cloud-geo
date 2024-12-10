@@ -104,39 +104,35 @@ def execute():
 def to_w3c_prov(prov):
 	return {
 		"_id": prov['_id'],
-		"executor": {"identifier": prov['name'], "type": "Executor"},
+		"@context": "http://www.w3.org/ns/prov.jsonld",
+		"prefix": {"ex": "http://example.org"},
 		"entities": [
 			{
-				"type": "Params",
-				"value": prov['params']
+				"id": "ex:params",
+				"type": "prov:Collection",
+				"prov:value": prov['params']
 			},
 			{
-				"type": "Results",
-				"value": prov['result']
+				"id": "ex:result",
+				"type": "prov:Entity",
+				"prov:value": prov['result']
 			}
 		],
-		"activities": [
+		"activity": [
 			{
-				"type": "Execute",
-				"attributes": {
-					"startTime": prov['start_time'],
-					"estimatedCompletion": prov['estimated_completion'],
-					"expirationTime": prov['expiration_time'],
-					"runTime": prov["run_time"],
-					"status": prov['status']
-				}
+				"id": "ex:execute",
+				"type": "prov:Activity",
+				"prov:startTime": prov['start_time'],
+				"prov:endTime": prov['estimated_completion'],
+				"prov:used": ["ex:params"],
+				"prov:generated": ["ex:result"],
+				"prov:wasAssociatedWith": "ex:executor"
 			}
 		],
-		"relationships": [
-			{"type": "generated", "source": "Execute", "target": "Result"},
-			{"type": "used", "source": "Execute", "target": "Params"},
-			{"type": "responsibleFor", "source": "Executor", "target": "Execute"}
-		],
-		"context": {
-			"project": "CloudGeoPy",
-			"process": f"{prov['name']} Operation",
-			"environment": "PyWPS with PyQGIS backend",
-			"version": "1.0.0"
+		"agent": {
+			"id": "ex:executor",
+			"type": "prov:SoftwareAgent",
+			"prov:label": f"{prov['name']} Executor",
 		}
 	}
 
