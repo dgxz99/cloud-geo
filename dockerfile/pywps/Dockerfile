@@ -31,9 +31,13 @@ ENV UWSGI_THREADS=2
 ENV UWSGI_BUFFER_SIZE=32768
 # 配置环境
 RUN apt update \
-	&& apt install -y python3-pip curl \
+	&& apt install -y python3-pip curl tzdata \
+	# 设置时区
+	&& ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
+	&& echo "Asia/Shanghai" > /etc/timezone \
 	&& apt clean \
 	&& rm -rf /var/lib/apt/lists/* \
+	# 安装python库
 	&& pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple \
 	&& pip install -r requirements.txt \
 	&& pip install uwsgi \
