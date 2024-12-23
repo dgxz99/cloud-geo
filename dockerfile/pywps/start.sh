@@ -1,6 +1,8 @@
 #!/bin/bash
 
 # 读取环境变量
+SERVER_HOST=${SERVER_HOST:-}
+SERVER_PORT=${SERVER_PORT:-}
 WORK_DIR=${WORK_DIR:-}
 MONGO_HOST=${MONGO_HOST:-}
 MONGO_PORT=${MONGO_PORT:-}
@@ -26,6 +28,8 @@ UWSGI_BUFFER_SIZE=${UWSGI_BUFFER_SIZE:-}
 # 构建 pyargv 参数
 new_pyargv=""
 
+[ -n "$SERVER_HOST" ] && new_pyargv+=" --server_host $SERVER_HOST"
+[ -n "$SERVER_PORT" ] && new_pyargv+=" --server_port $SERVER_PORT"
 [ -n "$WORK_DIR" ] && new_pyargv+=" --work_dir $WORK_DIR"
 [ -n "$MONGO_HOST" ] && new_pyargv+=" --mongo_host $MONGO_HOST"
 [ -n "$MONGO_PORT" ] && new_pyargv+=" --mongo_port $MONGO_PORT"
