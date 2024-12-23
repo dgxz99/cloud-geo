@@ -28,9 +28,9 @@ def create_app():
 
 	if config['deploy']['mode'] == 'distributed':
 		# 获取consul相关配置
-		service_name = config.get("consul", "service_name")
-		service_ip = config.get("consul", "service_ip")
-		service_port = config.getint("consul", "service_port")
+		service_name = config.get("consul", "consul_service_name")
+		service_ip = config.get("consul", "consul_service_ip")
+		service_port = config.getint("consul", "consul_service_port")
 
 		# 注册到consul
 		register_consul(service_name, service_ip, service_port)

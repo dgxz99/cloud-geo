@@ -8,6 +8,8 @@ WORKDIR /workdir
 # 中文环境
 ENV LANG C.UTF-8
 # 项目运行环境变量
+ENV SERVER_HOST=127.0.0.1
+ENV SERVER_PORT=5000
 ENV WORK_DIR=/workdir
 ENV MONGO_HOST=127.0.0.1
 ENV MONGO_PORT=27017
@@ -20,9 +22,9 @@ ENV REDIS_DB=0
 ENV REDIS_PASSWORD=''
 ENV CONSUL_IP=127.0.0.1
 ENV CONSUL_PORT=8500
-ENV SERVICE_NAME=py-wps
-ENV SERVICE_IP=''
-ENV SERVICE_PORT=5000
+ENV CONSUL_SERVICE_NAME=py-wps
+ENV CONSUL_SERVICE_IP=''
+ENV CONSUL_SERVICE_PORT=5000
 ENV FILE_SERVER_URL=''
 ENV DEPLOY_MODE=single
 # uWSGI环境变量
@@ -35,6 +37,7 @@ RUN apt update \
 	# 设置时区
 	&& ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
 	&& echo "Asia/Shanghai" > /etc/timezone \
+	# 清理缓存
 	&& apt clean \
 	&& rm -rf /var/lib/apt/lists/* \
 	# 安装python库

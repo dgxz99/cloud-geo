@@ -44,7 +44,9 @@ class QGISProcess(Process):
 		if deploy_mode == "distributed":
 			output_url = config.get("file", "file_server_url")
 		else:  # 其他情况都为single，单体部署
-			output_url = config.get("server", "outputurl")
+			server_host = config.get("Server", "server_host")
+			server_port = config.get("Server", "server_port")
+			output_url = f"http://{server_host}:{server_port}/outputs/"
 		output_file_name = None
 
 		try:

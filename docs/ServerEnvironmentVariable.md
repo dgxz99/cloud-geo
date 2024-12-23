@@ -23,6 +23,8 @@ When the backend module is running, it supports the use of **environmental varia
 
 	|    Variable Name    |                      Description                       |   Type    | Default Value |
 	| :-----------------: | :----------------------------------------------------: | :-------: | :-----------: |
+	| `SERVER_HOST` | Deployment IP address of the service | String | `127.0.0.1` |
+	| `SERVER_PORT` | Deployment port of the service | Integer | `5000` |
 	|     `WORK_DIR`      | Project's working directory (data, config files, logs) |  string   |  `/workdir`   |
 	|    `MONGO_HOST`     |                MongoDB database address                |  string   |  `127.0.0.1`  |
 	|    `MONGO_PORT`     |              MongoDB database port number              |  Integer  |    `27017`    |
@@ -46,4 +48,6 @@ When the backend module is running, it supports the use of **environmental varia
 
 	Notes:
 
+	- For `SERVER_HOST` and `SERVER_PORT`, please fill in the ip and mapped port of the server when deploying the container.
+	
 	- `SERVICE_IP` field, even if local you need to fill in the local IP address, not `127.0.0.1`. docker container deployment, **same network** under the fill in the container name can be.
