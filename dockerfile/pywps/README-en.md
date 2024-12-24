@@ -1,6 +1,6 @@
-# Distributed Geoprocessing-Geoprocessing (PyWPS-PyQGIS) Service Mirror
+# CloudGeoPy Service
 
-A service mirror that integrates many open source operators and contains the following open source operators:
+A service image that integrates many open source operators and contains the following open source operators:
 
 - QGIS, including GDAL and GRASS
 - OTB
@@ -15,7 +15,7 @@ The image needs to be correctly specified some corresponding configuration to en
 - **Single node deployment:** DEPLOY_MODE is single, you also need to set the MongoDB related configuration.
 - **Distributed deployment: **DEPLOY_MODE is distributed, MongoDB, Redis, Consul, and FILE_SERVER_URL need to be specified.
 
-## Geoprocessing service module
+## CloudGeoPy service module
 
 |    Variable Name    |                      Description                       |   Type    |   Default   |
 | :-----------------: | :----------------------------------------------------: | :-------: | :---------: |
@@ -52,45 +52,44 @@ Here is a sample command to create a container:
 
 ```bash
 # Single node deployment
-docker run -id --name pywps-pyqgis \
+docker run -id --name cloud-geo-py \
         -p 5000:5000 \
-        -v pywps-data:/workdir \
+        -v cloud-geo-py-data:/workdir \
         -e MONGO_HOST=example.mongo.com \
-        -e MONGO_USERNAME=example_username \\
+        -e MONGO_USERNAME=example_username \
         -e MONGO_PASSWORD=example_password \
-        swsk33/distribute-geoprocessing-pywps-pyqgis
+        swsk33/cloud-geo-py
 
 # Distributed deployment (consul is under the same docker network as all nodes, if not, SERVICE_IP uses the appropriate IP address)
 # node1
 docker run -id \
-        --name pywps-pyqgis-1 \
+        --name cloud-geo-py-1 \
         -p 5001:5000 \
-        -v pywps-data-1:/workdir \
+        -v cloud-geo-py-data-1:/workdir \
         -e MONGO_HOST=example.mongo.com \
         -e MONGO_USERNAME=example_username \
         -e MONGO_PASSWORD=example_password \
         -e REDIS_HOST=example.redis.com \
         -e REDIS_PASSWORD=example_password \
         -e CONSUL_IP=consul \
-        -e SERVICE_IP=pywps-pyqgis-1 \
+        -e SERVICE_IP=cloud-geo-py-pyqgis-1 \
         -e DEPLOY_MODE=distributed \
         -e FILE_SERVER_URL=http://wps-gateway:9000/api/file \
-        --network pywps \
-        swsk33/distribute-geoprocessing-pywps-pyqgis
+        --network cloud-geo-py \
+        swsk33/cloud-geo-py
 # node2
-docker run -id --name pywps-pyqgis-2 \
+docker run -id --name cloud-geo-py-2 \
         -p 5002:5000 \
-        -v pywps-data-2:/workdir \
+        -v cloud-geo-py-data-2:/workdir \
         -e MONGO_HOST=example.mongo.com \
         -e MONGO_USERNAME=example_username \
         -e MONGO_PASSWORD=example_password \
         -e REDIS_HOST=example.redis.com \
         -e REDIS_PASSWORD=example_password \
         -e CONSUL_IP=example.consul.com \
-        -e SERVICE_IP=pywps-pyqgis-2 \
+        -e SERVICE_IP=cloud-geo-py-pyqgis-2 \
         -e FILE_SERVER_URL=http://wps-gateway:9000/api/file \
         -e DEPLOY_MODE=distributed \
-        --network pywps \
-        swsk33/distributed-geoprocessing-pywps-pyqgis
+        --network cloud-geo-py \
+        swsk33/cloud-geo-py
 ```
-

@@ -1,16 +1,16 @@
-# Distributed Geoprocessing - Distributed Gateway
+# CloudGeo - Distributed Gateway
 
-Gateway for distributed geoprocessing services to enable service load balancing.
+Gateway for CloudGeo services to enable service load balancing.
 
 # Description
 
 Create the container with the following command:
 
 ```bash
-docker run -id --name wps-gateway -p 9000:9000 \
+docker run -id --name cloud-geo-gateway -p 9000:9000 \
 	-e CONSUL_HOST=example.consul.com \
 	-e CONSUL_PORT=8500 \
-	swsk33/distribute-geoprocessing-gateway
+	swsk33/cloud-geo-gateway
 ```
 
 The address and port number of the Consul registry needs to be configured correctly.
