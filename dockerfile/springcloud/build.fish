@@ -16,8 +16,8 @@ cp ./gateway/target/*.jar ../dockerfile/springcloud/gateway/gateway.jar
 cp ./file-storage/target/*.jar ../dockerfile/springcloud/file/file.jar
 
 # 构建Docker镜像
-set gateway_image_name swsk33/distribute-geoprocessing-gateway
-set file_image_name swsk33/distribute-geoprocessing-file
+set gateway_image_name swsk33/cloud-geo-gateway
+set file_image_name swsk33/cloud-geo-file
 
 echo 构建镜像...
 cd ../dockerfile/springcloud

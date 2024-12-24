@@ -1,4 +1,4 @@
-FROM azul/zulu-openjdk-alpine:21-jre-headless-latest
+FROM bellsoft/liberica-runtime-container:jre-21-slim-glibc
 ADD file.jar /app/
 ADD start.sh /
 WORKDIR /app

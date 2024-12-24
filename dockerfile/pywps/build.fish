@@ -22,7 +22,7 @@ tar -czvf src.tar.gz -C ../../pywps-pyqgis/src .
 tar -czvf data.tar.gz -C ../../pywps-pyqgis pywps.cfg requirements.txt uwsgi.ini
 
 # 构建Docker镜像
-set image_name swsk33/distribute-geoprocessing-pywps-pyqgis
+set image_name swsk33/cloud-geo-py
 echo 正在构建镜像...
 docker build -f Dockerfile -t $image_name:$image_version .
 echo 创建latest tag...
