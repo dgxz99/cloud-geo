@@ -49,7 +49,7 @@ const actions = {
             console.log("Fetched operators data:", data);
 
             // 提取算子列表
-            const operators = data.contents || [];
+            const operators = data.data.contents || [];
             commit('setOperators', operators);
         } catch (error) {
             console.error("Failed to fetch operators:", error);

@@ -4,7 +4,7 @@
         <!-- 左侧标题和图标 -->
         <el-col :span="8" class="navbar-title">
             <img src="../assets/favicon.png" alt="Logo" class="navbar-icon" style="width: 40px; height: 40px;">
-            <span class="title-text" style="font-size:30px">Geospatial Platform</span>
+            <span class="title-text" style="font-size:30px ">Geospatial Platform</span>
         </el-col>
         
         <!-- 右侧菜单项 -->
@@ -36,10 +36,11 @@
                 <el-menu-item index="4" @click="switchComponent('knowledge-graph', null, '/knowledge-graph')">
                     Knowledge Graph
                 </el-menu-item>
-                <el-menu-item index="5" @click="switchComponent('search', null, '/search')">
+                <el-menu-item index="5"
+                              @click="switchComponent('operator-traceability', null, '/operator-traceability')">
                     Operator Traceability
                 </el-menu-item>
-                <el-menu-item index="6" @click="switchComponent('search', null, '/search')">
+                <el-menu-item index="6" @click="switchComponent('operator-workflow', null, '/operator-workflow')">
                     Operator Workflow
                 </el-menu-item>
             </el-menu>

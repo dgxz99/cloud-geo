@@ -6,16 +6,28 @@
         <el-tabs v-model="activeTab">
             <!-- 处理工具箱选项卡 -->
             <el-tab-pane label="Processing Toolbox" name="toolbox">
+                <!-- 搜索框，用于筛选算子 -->
+                <el-input
+                    v-model="searchQuery"
+                    placeholder="Search operators..."
+                    clearable
+                    prefix-icon="el-icon-search"
+                    class="search-box"
+                ></el-input>
+                
                 <!-- 如果未加载，则显示操作符列表 -->
                 <ul v-if="!loading">
-                    <!-- 遍历操作符数组，为每个操作符生成一个列表项 -->
-                    <li v-for="operator in operators" :key="operator.Identifier">
+                    <!-- 遍历经过搜索过滤后的操作符数组 -->
+                    <li v-for="operator in filteredOperators" :key="operator.Identifier">
+                        
                         <!-- 文本按钮，点击时调用 selectOperator 方法 -->
                         <el-button type="text" @click="selectOperator(operator)">
                             {{ operator.Identifier }}
                         </el-button>
                     </li>
                 </ul>
+                <!-- 如果操作符列表为空，显示提示 -->
+                <p v-else-if="filteredOperators.length === 0">No operators found.</p>
             </el-tab-pane>
             
             <!-- 处理结果选项卡 -->
@@ -23,33 +35,37 @@
                 <div v-if="processedData.length">
                     <div class="results-container">
                         <el-card v-for="(data, index) in processedData" :key="index" class="result-card">
-                            <h4>{{ data.operatorName || '未知算子' }}</h4>
-                            <!--<p><strong>Job ID:</strong> {{ data.jobId || '无' }}</p>-->
-                            <p><strong>状态:</strong>
+                            <h4>{{ data.operatorName || 'Unknown Operator' }}</h4>
+                            <!--<p><strong>Job ID:</strong> {{ data.jobId || 'N/A' }}</p>-->
+                            <p><strong>Status:</strong>
+                                
                                 <el-tag :type="statusTagType(data.status)">
                                     {{ formatStatus(data) }}
                                 </el-tag>
                             </p>
-                            <p v-if="data.errorMessage"><strong>错误信息:</strong> {{ data.errorMessage }}</p>
-                            <p v-if="data.completionTime"><strong>完成时间:</strong>
+                            
+                            <p v-if="data.errorMessage"><strong>Error Message:</strong> {{ data.errorMessage }}</p>
+                            <p v-if="data.completionTime"><strong>Completion Time:</strong>
                                 {{ formatDateTime(data.completionTime) }}</p>
-                            <p v-if="data.status === 'succeeded'"><strong>下载链接:</strong>
+                            <p v-if="data.status === 'succeeded'"><strong>Download Link:</strong>
+                                
                                 <el-link
                                     :href="data.output?.OUTPUT || data.output?.out || data.output?.output"
                                     target="_blank"
                                     type="primary"
                                 >
-                                    点击下载
+                                    Click to Download
                                 </el-link>
                             </p>
                         </el-card>
                     </div>
                 </div>
-                <p v-else>暂无处理结果，请执行算子。</p>
+                <p v-else>No processed results available. Please execute an operator.</p>
             </el-tab-pane>
         </el-tabs>
     </div>
 </template>
+
 
 <script setup>
 // 导入 Vue 响应式编程和 Vuex 相关函数
@@ -63,6 +79,23 @@ const props = defineProps({
     isOperatorDetailVisible: Boolean, // 操作符详情是否可见
     activeTab: String // 接收 activeTab 属性
 });
+
+
+// 搜索框绑定的输入值
+const searchQuery = ref('');
+
+// 筛选后的算子列表（实时更新）
+const filteredOperators = computed(() => {
+    if (!searchQuery.value) {
+        // 如果没有输入搜索内容，则返回全部算子
+        return operators.value;
+    }
+    // 根据搜索关键字过滤算子，忽略大小写
+    return operators.value.filter((operator) =>
+        operator.Identifier.toLowerCase().includes(searchQuery.value.toLowerCase())
+    );
+});
+
 
 // 初始化 Vuex 存储
 const store = useStore();
@@ -92,10 +125,10 @@ const formatDateTime = (isoString) => {
 
 // 根据状态返回标签类型
 const formatStatus = (data) => {
-    if (data.status === 'succeeded') return '成功';
-    if (data.status === 'failed') return '失败';
-    if (data.status === 'running' || data.status === 'pending') return '执行中';
-    return '未知状态';
+    if (data.status === 'succeeded') return 'succeeded';
+    if (data.status === 'failed') return 'failed';
+    if (data.status === 'running' || data.status === 'pending') return 'running';
+    
 };
 
 const statusTagType = (status) => {

@@ -5,8 +5,9 @@ import FilesDrawer from '../components/FilesDrawer.vue';
 import OperatorToolbox from '../components/OperatorToolbox.vue';
 import OperatorOverview from '../components/OperatorOverview.vue';
 import KnowledgeGraph from '../components/KnowledgeGraph.vue';
-import SearchContainer from '../components/SearchContainer.vue';
 import OperatorIdentifier from '@/components/OperatorIdentifier.vue';
+import OperatorWorkflow from "@/components/OperatorWorkflow.vue";
+import OperatorTraceability from "@/components/OperatorTraceability.vue";
 
 
 const routes = [
@@ -59,13 +60,18 @@ const routes = [
                 component: KnowledgeGraph,
                 // meta: { title: '知识图谱' },
             },
-            {
-                path: 'search',
-                name: 'Search',
-                component: SearchContainer,
-                // meta: { title: '搜索' },
+             {
+                path: 'operator-traceability',
+                name: 'OperatorTraceability',
+                component: OperatorTraceability,
+                // meta: { title: '算子溯源' },
             },
-            // /
+            {
+                path: 'operator-workflow',
+                name: 'OperatorWorkflow',
+                component: OperatorWorkflow,
+                // meta: { title: '工作流' },
+            },
         ]
     },
 ];

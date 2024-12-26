@@ -7,16 +7,16 @@
             <el-icon>
                 <ArrowLeft/>
             </el-icon>
-            <span style="font-size: 20px;">{{ operator.Identifier }}</span>
+            <span style="font-size: 20px;">{{ operator.data.Identifier }}</span>
         </el-button>
         
         <!-- 算子描述 -->
-        <div class="operator-abstract">{{ operator.Abstract }}</div>
+        <div class="operator-abstract">{{ operator.data.Abstract }}</div>
         
         <!-- 输入参数部分 -->
         <div class="input-section">
             <h3>Input Parameters</h3>
-            <div v-for="input in operator.Input.filter(i => i.Identifier !== 'OUTPUT' && i.Identifier !== 'output')"
+            <div v-for="input in operator.data.Input.filter(i => i.Identifier !== 'OUTPUT' && i.Identifier !== 'output')"
                  :key="input.Identifier" class="input-field">
                 <label>
                     {{ input.Identifier }}
@@ -88,7 +88,7 @@
         <!-- 输出参数部分 -->
         <div class="output-section">
             <h3>Output Parameters</h3>
-            <div v-for="output in operator.Output" :key="output.Identifier" class="output-field">
+            <div v-for="output in operator.data.Output" :key="output.Identifier" class="output-field">
                 <label>{{ output.Title }}</label>
                 
                 <!-- 选择输出格式 -->
@@ -139,7 +139,7 @@
         </div>
         
         <!-- 执行按钮 -->
-        <el-button v-if="operator.Output.every(o => o.DataType !== 'ComplexData' || o.hasDownloadButton)"
+        <el-button v-if="operator.data.Output.every(o => o.DataType !== 'ComplexData' || o.hasDownloadButton)"
                    class="execute-button uniform-width" type="primary" @click="executeOperator"
                    :disabled="!isValidInputs">
             Execute Operator
@@ -212,7 +212,7 @@ function registerUploadRef(refName, refInstance) {
 // 初始化输入参数的值
 function initializeParameterinValues() {
     if (operator.value) {
-        operator.value.Input.forEach((input) => {
+        operator.value.data.Input.forEach((input) => {
             inputValues.value[input.Identifier] = input.LiteralData?.LiteralDataDomain[0]?.DefaultValue || '';
         });
     }
@@ -221,7 +221,7 @@ function initializeParameterinValues() {
 // 初始化输出参数的值
 function initializeParameteroutValues() {
     if (operator.value) {
-        operator.value.Output.forEach((output) => {
+        operator.value.data.Output.forEach((output) => {
             outputValues.value[output.Identifier] = output.LiteralData?.LiteralDataDomain[0]?.DefaultValue || '';
             if (output.DataType === 'ComplexData') {
                 output.hasDownloadButton = !!output.hasDownloadButton;
@@ -251,7 +251,7 @@ function handleUploadSuccess(response, file, identifier) {
         return;
     }
     
-    const fileUrl = `http://8.137.39.2:5000/inputs/${filenames[0]}`;
+    const fileUrl = `http://10.191.243.20:5555/inputs/${filenames[0]}`;
     console.log("生成的文件URL:", fileUrl);
     
     // 确保 identifier 的值是一个数组，用于存储多个文件
@@ -279,7 +279,7 @@ function handleUploadSuccess(response, file, identifier) {
 function validateInputs() {
     
     if (operator.value) {
-        isValidInputs.value = operator.value.Input.every((input) => {
+        isValidInputs.value = operator.value.data.Input.every((input) => {
             const value = inputValues.value[input.Identifier];
             return input.minOccurs === 0 || (value && value !== '');
         });
@@ -312,7 +312,7 @@ async function executeOperator() {
     // 调用 Vuex 方法切换标签页
     console.log("准备执行算子，输入值:", inputValues.value);
     const inputs = {};
-    operator.value.Input.forEach(input => {
+    operator.value.data.Input.forEach(input => {
         const identifier = input.Identifier;
         const value = inputValues.value[identifier];
         
@@ -334,7 +334,7 @@ async function executeOperator() {
     });
     
     const requestData = {
-        identifier: operator.value.Identifier,
+        identifier: operator.value.data.Identifier,
         mode: mode.value,
         inputs: inputs
     };
@@ -361,7 +361,7 @@ async function executeOperator() {
     const taskId = Date.now(); // 使用时间戳模拟任务ID
     const initialTask = {
         jobId: taskId,
-        operatorName: operator.value.Identifier,
+        operatorName: operator.value.data.Identifier,
         status: 'running',
         // completionTime: null,
         // output: null,
@@ -381,7 +381,7 @@ async function executeOperator() {
             status: response.data.status || 'succeeded',
             completionTime: response.data.completionTime || new Date().toISOString(),
             errorMessage: null,
-            output: response.data.output // 添加 output 字段
+            output: response.data.data.output // 添加 output 字段
         });
         
     } catch (error) {
