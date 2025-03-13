@@ -1,6 +1,6 @@
-<!--src/components/OperatorIdentifier-->
+<!--src/components/WorkflowIdentifier-->
 <template>
-    <div class="operator-identifier" v-if="operator">
+    <div class="workflow-identifier" v-if="operator">
         <!-- 返回按钮 -->
         <el-button type="text" class="back-button" @click="doClear()">
             <el-icon>
@@ -9,13 +9,10 @@
             <span style="font-size: 20px;">{{ operator.data.Identifier }}</span>
         </el-button>
 
-        <!-- 算子描述 -->
-        <div class="operator-abstract">{{ operator.data.Abstract }}</div>
-
         <!-- 输入参数部分 -->
         <div class="input-section">
             <h3>Input Parameters</h3>
-            <div v-for="input in operator.data.Input.filter(i => i.Identifier !== 'OUTPUT' && i.Identifier !== 'output')"
+            <div v-for="input in (operator.data.Input || []).filter(i => i.Identifier !== 'OUTPUT' && i.Identifier !== 'output')"
                 :key="input.Identifier" class="input-field">
                 <label>
                     {{ input.Identifier }}
@@ -133,10 +130,14 @@
             class="execute-button uniform-width" type="primary" @click="executeOperator" :disabled="!isValidInputs">
             Execute Operator
         </el-button>
+        <el-button class="save-button uniform-width" type="success" @click="saveConfiguration">
+            Save Configuration
+        </el-button>
     </div>
 </template>
 
 <script setup>
+// 导入 Vue 和 Element Plus 相关模块
 import { inject, ref, watch, defineProps, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ArrowLeft } from '@element-plus/icons-vue';
@@ -144,6 +145,23 @@ import axios from 'axios';
 import { ElMessage } from 'element-plus';
 import { useStore } from 'vuex';
 
+import { v4 as uuidv4 } from 'uuid';
+
+const generateUniqueId = () => {
+    return uuidv4();
+};
+
+// 注入 resetView
+const resetView = inject('resetView');
+function doClear() {
+    // 调用 resetView 以重置状态
+    if (resetView) {
+        resetView();
+    }
+    router.push({ name: 'OperatorWorkflow' });
+}
+
+// 初始化可变数据对象，用于后续的数据绑定和状态管理
 const operator = ref(null);
 const router = useRouter();
 const route = useRoute();
@@ -155,58 +173,32 @@ const mode = ref('sync');
 const uploadRefs = ref({});
 const isValidInputs = ref(false);
 const toolboxControl = inject('toolboxControl');
+
+// 定义组件接收的属性，此处的属性用于控制工具箱的显示
 const props = defineProps({
     toggleToolbox: Function
 });
 
+// 监听路由参数变化，根据 operatorId 获取算子详情
 watch(
-    () => route.params.Identifier,
-    async (newIdentifier) => {
-        if (newIdentifier) {
-            try {
-                const response = await axios.get(`/api/processes/${newIdentifier}`);
-                operator.value = response.data;
-                initializeParameterinValues();
-                initializeParameteroutValues();
-            } catch (error) {
-                console.error("获取算子信息失败:", error);
-            }
+    [() => route.params.workflowId, () => route.params.operatorId],
+    async ([workflowId, operatorId]) => {
+        console.log('开始加载节点配置', { workflowId, operatorId })
+        try {
+            const apiUrl = `/api/processes/${operatorId}`
+            console.log('请求地址:', apiUrl)
+            const response = await axios.get(apiUrl)
+            console.log('响应数据结构:', response.data)
+            operator.value = response.data
+        } catch (error) {
+            console.error("请求失败详情:", error.config)
         }
-    },
-    { immediate: true }
-);
-
-function doClear() {
-    Object.values(uploadRefs.value).forEach((uploadInstance) => {
-        if (uploadInstance && uploadInstance.clearFiles) {
-            uploadInstance.clearFiles();
-        }
-    });
-    router.push({ name: 'OperatorToolbox' });
-}
+    }
+)
 
 function registerUploadRef(refName, refInstance) {
     if (refInstance) {
         uploadRefs.value[refName] = refInstance;
-    }
-}
-
-function initializeParameterinValues() {
-    if (operator.value) {
-        operator.value.data.Input.forEach((input) => {
-            inputValues.value[input.Identifier] = input.LiteralData?.LiteralDataDomain[0]?.DefaultValue || '';
-        });
-    }
-}
-
-function initializeParameteroutValues() {
-    if (operator.value) {
-        operator.value.data.Output.forEach((output) => {
-            outputValues.value[output.Identifier] = output.LiteralData?.LiteralDataDomain[0]?.DefaultValue || '';
-            if (output.DataType === 'ComplexData') {
-                output.hasDownloadButton = !!output.hasDownloadButton;
-            }
-        });
     }
 }
 
@@ -226,7 +218,7 @@ function handleUploadSuccess(response, file, identifier) {
         return;
     }
 
-    const fileUrl = `http://10.191.243.20:5555/inputs/${filenames[0]}`;
+    const fileUrl = `http://dev.swsk33-mcs.top:9002/inputs/${filenames[0]}`;
     inputValues.value[identifier] = inputValues.value[identifier] || [];
     const isDuplicate = inputValues.value[identifier].some(item => item.url === fileUrl);
     if (!isDuplicate) {
@@ -316,12 +308,121 @@ async function executeOperator() {
     }
 }
 
+const saveConfiguration = () => {
+    if (!operator.value) {
+        ElMessage.warning('No operator configuration to save!');
+        return;
+    }
+
+    const operatorDetail = operator.value; // 包含算子信息（例如 data.Input、data.Output、data.Identifier 等）
+    const operatorIdentifier = operatorDetail.data.Identifier;
+
+    // ① 计算用户配置的输入（inputValues）
+    const computedInputValues = Object.entries(inputValues.value).reduce((acc, [key, value]) => {
+        if (Array.isArray(value)) {
+            // 如果是上传的文件列表
+            acc[key] = {
+                files: value.map(item => ({
+                    name: item.name,
+                    size: item.size,
+                    url: item.url,
+                    identifier: item.Identifier
+                }))
+            };
+        } else if (value !== null && value !== undefined && value !== '') {
+            // 如果是 LiteralData 类型的配置
+            acc[key] = { value: value };
+        }
+        return acc;
+    }, {});
+
+    // ② 合并原始的 Input 元数据和用户配置，同时加入默认值（若未被用户覆盖）
+    const mergedInputParams = {};
+    if (operatorDetail.data.Input && operatorDetail.data.Input.length > 0) {
+        operatorDetail.data.Input.forEach(input => {
+            const key = input.Identifier;
+            // 构建基础的元数据对象
+            mergedInputParams[key] = {
+                type: input.DataType, // "ComplexData" 或 "LiteralData"
+                minOccurs: input.minOccurs || 0,
+                maxOccurs: input.maxOccurs || 1,
+                connected: 0,
+                supportedFormats: (input.DataType === 'ComplexData' &&
+                    input.ComplexData &&
+                    input.ComplexData.Format)
+                    ? input.ComplexData.Format.map(f => f.mimeType)
+                    : undefined,
+                // 如果用户已经提供配置则合并进去
+                ...computedInputValues[key]
+            };
+            // 如果用户未提供配置且是 LiteralData 类型，并且存在默认值，则添加默认值
+            if (!computedInputValues[key] && input.DataType === 'LiteralData' && input.defaultValue !== undefined) {
+                mergedInputParams[key].value = input.defaultValue;
+            }
+        });
+    } else {
+        // 如果原始数据中没有 Input，则直接使用用户配置
+        Object.assign(mergedInputParams, computedInputValues);
+    }
+
+    // ③ 合并原始的 Output 元数据和用户配置（如果有）
+    const mergedOutputParams = {};
+    if (operatorDetail.data.Output && operatorDetail.data.Output.length > 0) {
+        operatorDetail.data.Output.forEach(output => {
+            const key = output.Identifier;
+            mergedOutputParams[key] = {
+                type: output.DataType,
+                minOccurs: output.minOccurs || 0,
+                maxOccurs: output.maxOccurs || 1,
+                connected: 0,
+                supportedFormats: (output.DataType === 'ComplexData' &&
+                    output.ComplexData &&
+                    output.ComplexData.Format)
+                    ? output.ComplexData.Format.map(f => f.mimeType)
+                    : undefined,
+                ...(outputValues.value[key] ? { value: outputValues.value[key] } : {})
+            };
+            // 同样对于 LiteralData，如果未由用户提供值且有默认值
+            if (!outputValues.value[key] && output.DataType === 'LiteralData' && output.defaultValue !== undefined) {
+                mergedOutputParams[key].value = output.defaultValue;
+            }
+        });
+    } else {
+        Object.assign(mergedOutputParams, outputValues.value);
+    }
+
+    // ④ 构建完整的算子配置对象（包含算子信息和配置）
+    const newOperatorConfig = {
+        id: operatorDetail.id, // 原始算子的 id
+        identifier: operatorIdentifier,
+        inputParams: mergedInputParams,
+        outputParams: mergedOutputParams,
+        executionMode: mode.value,
+        selectedFormat: selectedFormat.value
+    };
+
+    // ⑤ 从 Vuex 中获取所有已保存的算子配置，根据 identifier 判断是否已经存在
+    const allConfigs = store.getters['workflow/getWorkflowNodes'];
+    let existingConfigIndex = allConfigs.findIndex(config => config.identifier === operatorIdentifier);
+
+    // ⑥ 保存（如果已存在则更新，不存在则新增）
+    store.dispatch('workflow/saveOperatorConfig', { existingConfigIndex, newOperatorConfig });
+
+    console.groupCollapsed('🚀 Saved Operator Configuration');
+    console.log('Operator Configuration:', newOperatorConfig);
+    console.log('All Configurations:', store.getters['workflow/getWorkflowNodes']);
+    console.groupEnd();
+
+    ElMessage.success('Configuration saved successfully!');
+};
+
+
+
+
 watch(inputValues, () => {
     isValidInputs.value = Object.values(inputValues.value).every(value => value !== '');
 });
 </script>
-
-
 
 <style>
 .el-input-number .el-input__wrapper {
@@ -370,7 +471,7 @@ watch(inputValues, () => {
 </style>
 
 <style scoped>
-.operator-identifier {
+.workflow-identifier {
     padding: 20px;
     height: calc(100vh - 100px);
     overflow-y: auto;

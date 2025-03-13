@@ -12,7 +12,7 @@
             <el-menu
                 mode="horizontal"
                 background-color="#FFFFFF"
-                text-color="#000000"
+                text-color="#ffffff"
                 active-text-color="#409EFF"
                 :default-active="activeIndex"
                 class="navbar"
@@ -25,22 +25,40 @@
                 :ellipsis="false"
             >
                 <el-menu-item index="1" @click="switchComponent('files', toggleFilesDrawer)">
+                    <el-icon>
+                        <Folder/>
+                    </el-icon>
                     File Management
                 </el-menu-item>
                 <el-menu-item index="2" @click="switchComponent('toolbox', null, toggleToolbox)">
+                    <el-icon>
+                        <Tools/>
+                    </el-icon>
                     Operator Toolbox
                 </el-menu-item>
                 <el-menu-item index="3" @click="switchComponent('operator-overview', null, '/operator-overview')">
+                    <el-icon>
+                        <Document/>
+                    </el-icon>
                     Operator Overview
                 </el-menu-item>
                 <el-menu-item index="4" @click="switchComponent('knowledge-graph', null, '/knowledge-graph')">
+                    <el-icon>
+                        <Connection/>
+                    </el-icon>
                     Knowledge Graph
                 </el-menu-item>
                 <el-menu-item index="5"
                               @click="switchComponent('operator-traceability', null, '/operator-traceability')">
+                    <el-icon>
+                        <Position/>
+                    </el-icon>
                     Operator Traceability
                 </el-menu-item>
                 <el-menu-item index="6" @click="switchComponent('operator-workflow', null, '/operator-workflow')">
+                    <el-icon>
+                        <Paperclip/>
+                    </el-icon>
                     Operator Workflow
                 </el-menu-item>
             </el-menu>
@@ -52,8 +70,9 @@
 import {ref} from 'vue'
 import {defineEmits} from 'vue'
 import {useNavBar} from '@/composables/useNavBar'
+import {Folder, Tools, Document, Connection, Position, Paperclip} from '@element-plus/icons-vue';
 
-const emit = defineEmits(['toggle-files-drawer', 'toggle-toolbox', 'show-knowledge-graph', 'reset-view']);
+const emit = defineEmits(['toggle-files-drawer', 'toggle-toolbox', 'show-knowledge-graph', 'show-operator-workflow', 'reset-view']);
 const {navigate} = useNavBar()
 
 // 记录当前打开的组件
@@ -80,6 +99,8 @@ const switchComponent = (component, toggleFunction = null, route = '') => {
         emit('show-knowledge-graph');
     } else if (component === 'operator-overview') {
         emit('show-operator-overview');
+    } else if (component === 'operator-workflow') {
+        emit('show-operator-workflow');
     } else {
         emit('reset-view');
     }
@@ -103,51 +124,78 @@ const toggleFilesDrawer = () => {
     height: 60px;
     padding: 10px 20px;
     display: flex;
-    align-items: center; /* 确保上下居中对齐 */
+    align-items: center;
     position: relative;
-    z-index: 1000; /* 确保顶部栏的 z-index 高于地图 */
+    z-index: 1000;
+    background: linear-gradient(90deg, #1a1a1a 0%, #2d2d2d 100%);
+    border-bottom: 1px solid #404040;
 }
 
 .navbar-title {
     display: flex;
-    align-items: center; /* 垂直居中 */
-    height: 100%; /* 确保左右两侧高度一致 */
+    align-items: center;
+    height: 100%;
 }
 
 .navbar-icon {
     margin-right: 8px;
-    color: #409EFF;
-    height: 30px; /* 设置图标高度 */
+    height: 30px;
 }
 
 .title-text {
     font-weight: bold;
-    color: #409EFF;
-    line-height: 60px; /* 确保标题垂直居中 */
+    font-size: 30px;
+    color: #ffffff;
+    line-height: 60px;
+    background: linear-gradient(90deg, #409EFF 0%, #64b5ff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 .navbar-menu {
     display: flex;
-    align-items: center; /* 垂直居中 */
-    justify-content: flex-end; /* 保证右侧对齐 */
-    height: 100%; /* 确保与左侧栏一致 */
-}
-
-.el-menu-item {
-    height: 100%; /* 每个菜单项的高度 */
-    display: flex;
-    align-items: center; /* 垂直居中 */
+    align-items: center;
+    justify-content: flex-end;
+    height: 100%;
 }
 
 .el-menu {
     height: 100%;
     width: auto !important;
     margin-left: auto;
+    background-color: transparent !important;
+    border-bottom: none !important;
 }
 
 .el-menu--horizontal {
     float: right;
 }
 
-</style>
+.el-menu-item {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    margin: 0 16px;
+    padding: 0 16px !important;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
 
+.el-menu-item:hover {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.el-menu-item.is-active {
+    background-color: rgba(64, 158, 255, 0.2) !important;
+    color: #409EFF !important;
+}
+
+.el-menu-item .el-icon {
+    margin-right: 8px;
+    font-size: 18px;
+}
+
+
+</style>

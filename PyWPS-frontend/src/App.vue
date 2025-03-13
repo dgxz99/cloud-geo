@@ -22,7 +22,8 @@ html,
   padding: 0;
   height: 100%;
   width: 100%;
+  background-color: #1e1e1e;
+  color: #ffffff;
 }
 
-/* 其他全局样式 */
 </style>

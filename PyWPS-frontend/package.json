@@ -1,5 +1,5 @@
 {
-  "name": "demo",
+  "name": "CloudGeoPy",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -8,15 +8,18 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
+    "@element-plus/icons-vue": "^2.3.1",
     "3d-force-graph": "^1.73.5",
     "axios": "^1.7.8",
+    "cesium": "^1.125.0",
     "core-js": "^3.8.3",
     "cors": "^2.8.5",
     "cytoscape": "^3.30.3",
     "cytoscape-cose-bilkent": "^4.1.0",
     "element-plus": "^2.8.7",
     "express": "^4.21.1",
-    "leaflet": "^1.9.4",
+    "jointjs": "^3.7.7",
+    "nanoid": "^5.1.2",
     "neo4j-driver": "^5.26.0",
     "shpjs": "^6.1.0",
     "vue": "^3.2.13",

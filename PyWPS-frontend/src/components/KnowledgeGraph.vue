@@ -1,7 +1,7 @@
 <template>
     <div>
-        <div id="cytoscape-container" style="width: 100%; height: 700px; overflow: auto;"></div>
-
+        <div id="cytoscape-container" style="width: 100%; height: 880px; overflow: auto;"></div>
+        
         <!-- 页脚内容，显示选中节点信息和加载更多按钮 -->
         <div class="footer-content">
             <!-- 左侧显示选中节点信息 -->
@@ -20,8 +20,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
-import { useStore } from 'vuex';
+import {ref, onMounted, computed} from 'vue';
+import {useStore} from 'vuex';
 
 import cytoscape from 'cytoscape';
 
@@ -42,7 +42,7 @@ const edges = computed(() => store.getters['knowledgeGraph/getEdges']);
 const getElements = (nodes, edges) => {
     console.log("当前节点数据:", nodes.value);
     console.log("当前边数据:", edges.value);
-
+    
     return [
         ...nodes.value.map(node => ({
             data: {
@@ -64,10 +64,10 @@ const getElements = (nodes, edges) => {
 
 const renderKnowledgeGraph = () => {
     const newElements = getElements(nodes, edges); // 先获取新的元素
-
+    
     console.log("准备渲染的节点数据:", nodes.value); // 输出当前的节点数据
     console.log("准备渲染的边数据:", edges.value); // 输出当前的边数据
-
+    
     if (!cy.value) {
         cy.value = cytoscape({
             container: document.getElementById('cytoscape-container'),
@@ -183,11 +183,11 @@ const renderKnowledgeGraph = () => {
             };
             console.log('Selected node:', selectedNode.value);
         });
-
-
+        
+        
     } else {
-        cy.value.json({ elements: newElements }); // 更新元素
-        cy.value.layout({ name: 'cose-bilkent', fit: true }).run();
+        cy.value.json({elements: newElements}); // 更新元素
+        cy.value.layout({name: 'cose-bilkent', fit: true}).run();
         console.log("Cytoscape 数据更新成功");
     }
 };
@@ -199,24 +199,21 @@ const loadMoreGraphData = async () => {
         skip: skip.value,
         limit: limit.value
     });
-
+    
     const newElements = getElements(nodes, edges).filter(element => {
         return !cy.value.hasElementWithId(element.data.id);
     });
-
+    
     if (cy.value) {
         cy.value.add(newElements);
         // 之后使用更复杂布局
         setTimeout(() => {
-            cy.value.layout({ name: 'cose-bilkent', fit: true, animate: true }).run();
+            cy.value.layout({name: 'cose-bilkent', fit: true, animate: true}).run();
         }, 2000);
     } else {
         renderKnowledgeGraph();
     }
 };
-
-
-
 
 
 onMounted(async () => {

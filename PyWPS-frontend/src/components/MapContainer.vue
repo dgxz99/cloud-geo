@@ -1,61 +1,42 @@
 <template>
-    <div id="MapContainer" ref="mapContainer"></div>
+    <div id="cesiumContainer"></div>
 </template>
 
 <script>
-import {initializeTianditu} from '@/tianditu'; // 天地图初始化工具
+import {onMounted} from 'vue';
+import {Ion, Viewer} from 'cesium';
+import 'cesium/Build/Cesium/Widgets/widgets.css';
+
+Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJiZjI2ZjBlZi0yNWI3LTRhOWQtODI5NS03YjJkYzc5ZGUwN2YiLCJpZCI6MjI4MTk2LCJpYXQiOjE3MzY0MDMwODB9.GEvgz5GsoBpWQQCyVKL7B3Tx4a9Kk5Omz4rZo4Z_X_U'
 
 export default {
-    name: 'MapContainer',
-    data() {
-        return {
-            map: null,  // 用于存储 Leaflet 地图实例
-        };
-    },
-    mounted() {
-        // 初始化天地图，并将返回的地图实例赋值给 map 属性
-        this.map = initializeTianditu(this.$refs.mapContainer);
-        
-        
-    },
-    beforeUnmount() {
-        // 组件卸载前销毁地图实例，避免内存泄漏
-        if (this.map) {
-            this.map.remove();
-            this.map = null;
-        }
-    },
-    methods: {
-        /**
-         * 向地图中添加 GeoJSON 数据
-         * @param {Object} geoJsonData - 传入的 GeoJSON 数据
-         * @param {boolean} [zoomToData=true] - 是否将视角缩放到数据范围
-         * @param {string} [name=''] - 图层的名称
-         */
-        addGeoJsonToMap(geoJsonData, zoomToData = true, name = '') {
-            if (!this.map) return;
-            
-            // eslint-disable-next-line no-undef
-            const geoJsonLayer = L.geoJSON(geoJsonData);
-            geoJsonLayer.name = name || `GeoJSON Layer ${Date.now()}`; // 使用传递的文件名作为图层名称
-            
-            geoJsonLayer.addTo(this.map);
-            
-            if (zoomToData) {
-                this.map.fitBounds(geoJsonLayer.getBounds());
-            }
-            
-            // 触发图层添加的事件，并传递图层信息给父组件
-            this.$emit('layer-added', {name: geoJsonLayer.name, layer: geoJsonLayer});
-        },
+    name: 'App',
+    setup() {
+        onMounted(() => {
+            const viewer = new Viewer('cesiumContainer', {
+                animation: true, //是否打开创建动画小控件，即左下角的仪表
+                baseLayerPicker: true,//是否显示图层选择器
+                fullscreenButton: true,//是否显示全屏按钮
+                geocoder: true,//是否显示Geocoder(右上角的查询按钮)
+                homeButton: true,//是否显示Home按钮
+                infoBox: true,//是否显示信息框
+                sceneModePicker: true,//是否显示三维地球/二维地图选择器
+                selectionIndicator: true,//是否显示选取指示器
+                timeline: true, //是否关闭时间线
+                navigationHelpButton: false, // 帮助提示
+            });
+            // 去除版权信息
+            viewer._cesiumWidget._creditContainer.style.display = 'none';
+        })
     }
-    
 }
 </script>
 
 <style scoped>
-#MapContainer {
-    width: 100%;
+#cesiumContainer {
     height: 100%;
+    margin: 0;
+    padding: 0;
 }
+
 </style>

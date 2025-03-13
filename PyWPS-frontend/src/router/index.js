@@ -8,6 +8,7 @@ import KnowledgeGraph from '../components/KnowledgeGraph.vue';
 import OperatorIdentifier from '@/components/OperatorIdentifier.vue';
 import OperatorWorkflow from "@/components/OperatorWorkflow.vue";
 import OperatorTraceability from "@/components/OperatorTraceability.vue";
+// import WorkflowIdentifier from "@/components/WorkflowIdentifier.vue";
 
 
 const routes = [
@@ -24,10 +25,11 @@ const routes = [
                 // meta: { title: '导入数据' },
                 children: [
                     {
-                        path: 'RasterData',
-                        name: 'RasterData',
-                        component: () => import('../components/RasterData.vue'),
+                        path: 'workflow',
+                        name: 'OperatorWorkflow',
+                        component: () => import('@/components/OperatorWorkflow.vue')
                     },
+
                     {
                         path: 'VectorData',
                         name: 'VectorData',
@@ -60,7 +62,7 @@ const routes = [
                 component: KnowledgeGraph,
                 // meta: { title: '知识图谱' },
             },
-             {
+            {
                 path: 'operator-traceability',
                 name: 'OperatorTraceability',
                 component: OperatorTraceability,
@@ -72,6 +74,16 @@ const routes = [
                 component: OperatorWorkflow,
                 // meta: { title: '工作流' },
             },
+
+            {
+                path: '/workflows/:workflowId/nodes/:operatorId',
+                name: 'WorkflowIdentifier',
+                component: () => import('../components/WorkflowIdentifier.vue'),
+                props: true,
+                // meta: { title: '工作流节点配置' },
+            }
+
+
         ]
     },
 ];
@@ -87,6 +99,7 @@ const router = createRouter({
 //     // document.title='CloudGeoPy: 云端地理信息处理平台'
 //     // next();
 // });
+
 
 router.beforeEach((to, from, next) => {
     // 标题内容

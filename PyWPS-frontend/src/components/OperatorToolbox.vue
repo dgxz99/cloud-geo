@@ -7,19 +7,14 @@
             <!-- 处理工具箱选项卡 -->
             <el-tab-pane label="Processing Toolbox" name="toolbox">
                 <!-- 搜索框，用于筛选算子 -->
-                <el-input
-                    v-model="searchQuery"
-                    placeholder="Search operators..."
-                    clearable
-                    prefix-icon="el-icon-search"
-                    class="search-box"
-                ></el-input>
-                
+                <el-input v-model="searchQuery" :prefix-icon="Search" placeholder="Search operators..." clearable
+                    class="search-box"></el-input>
+
                 <!-- 如果未加载，则显示操作符列表 -->
                 <ul v-if="!loading">
                     <!-- 遍历经过搜索过滤后的操作符数组 -->
                     <li v-for="operator in filteredOperators" :key="operator.Identifier">
-                        
+
                         <!-- 文本按钮，点击时调用 selectOperator 方法 -->
                         <el-button type="text" @click="selectOperator(operator)">
                             {{ operator.Identifier }}
@@ -29,7 +24,7 @@
                 <!-- 如果操作符列表为空，显示提示 -->
                 <p v-else-if="filteredOperators.length === 0">No operators found.</p>
             </el-tab-pane>
-            
+
             <!-- 处理结果选项卡 -->
             <el-tab-pane label="Processed Data" name="results">
                 <div v-if="processedData.length">
@@ -38,22 +33,19 @@
                             <h4>{{ data.operatorName || 'Unknown Operator' }}</h4>
                             <!--<p><strong>Job ID:</strong> {{ data.jobId || 'N/A' }}</p>-->
                             <p><strong>Status:</strong>
-                                
+
                                 <el-tag :type="statusTagType(data.status)">
                                     {{ formatStatus(data) }}
                                 </el-tag>
                             </p>
-                            
+
                             <p v-if="data.errorMessage"><strong>Error Message:</strong> {{ data.errorMessage }}</p>
                             <p v-if="data.completionTime"><strong>Completion Time:</strong>
                                 {{ formatDateTime(data.completionTime) }}</p>
                             <p v-if="data.status === 'succeeded'"><strong>Download Link:</strong>
-                                
-                                <el-link
-                                    :href="data.output?.OUTPUT || data.output?.out || data.output?.output"
-                                    target="_blank"
-                                    type="primary"
-                                >
+
+                                <el-link :href="data.output?.OUTPUT || data.output?.out || data.output?.output"
+                                    target="_blank" type="primary">
                                     Click to Download
                                 </el-link>
                             </p>
@@ -69,9 +61,9 @@
 
 <script setup>
 // 导入 Vue 响应式编程和 Vuex 相关函数
-import {ref, computed, defineProps, watch} from 'vue';
-import {useStore} from 'vuex';
-
+import { ref, computed, defineProps, watch } from 'vue';
+import { useStore } from 'vuex';
+import { Search } from '@element-plus/icons-vue';
 // 定义组件属性
 const props = defineProps({
     toggleToolbox: Function, // 切换工具箱的方法
@@ -104,6 +96,7 @@ const operators = computed(() => store.state.operator.operators);
 // 计算属性，从 Vuex 存储中获取加载状态
 const loading = computed(() => store.state.operator.loading);
 // 绑定本地 ref 到 activeTab 属性
+// 初始化 activeTab，确保它同步更新
 const activeTab = ref(props.activeTab); // 绑定到 prop
 
 /**
@@ -128,7 +121,7 @@ const formatStatus = (data) => {
     if (data.status === 'succeeded') return 'succeeded';
     if (data.status === 'failed') return 'failed';
     if (data.status === 'running' || data.status === 'pending') return 'running';
-    
+
 };
 
 const statusTagType = (status) => {
@@ -147,12 +140,9 @@ const statusTagType = (status) => {
 
 
 // 监听 activeTab 属性的变化，并同步到本地 ref
-watch(
-    () => props.activeTab,
-    (newTab) => {
-        activeTab.value = newTab; // 同步 prop 变化到本地 ref
-    }
-);
+watch(() => props.activeTab, (newTab) => {
+    activeTab.value = newTab; // 同步 prop 变化到本地 ref
+});
 </script>
 
 <style scoped>
@@ -163,7 +153,7 @@ watch(
     overflow-y: auto;
     width: 320px;
     position: relative;
-    border-left: 1px solid #dcdfe6;
+
 }
 
 /* 返回按钮样式，绝对定位在顶部左侧 */
@@ -181,19 +171,27 @@ watch(
 }
 
 .result-card {
-    --el-card-padding: 0 10px 20px 20px; /* 设置上下内边距为0，左右内边距保持20px */
+    --el-card-padding: 0 10px 20px 20px;
+    /* 设置上下内边距为0，左右内边距保持20px */
 }
 
 /* 单个结果卡片样式 */
 .result-card {
-    width: 320px; /* 卡片宽度 */
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* 卡片阴影 */
-    border-radius: 8px; /* 卡片圆角 */
+    width: 320px;
+    /* 卡片宽度 */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    /* 卡片阴影 */
+    border-radius: 8px;
+    /* 卡片圆角 */
     transition: transform 0.2s ease, box-shadow 0.2s ease;
+    --el-card-bg-color: #2d2d2d;
+    --el-text-color-primary: #e0e0e0;
+    --el-border-color-light: #444;
 }
 
 .result-card:hover {
-    transform: translateY(-5px); /* 鼠标悬停提升效果 */
+    transform: translateY(-5px);
+    /* 鼠标悬停提升效果 */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
@@ -202,22 +200,25 @@ watch(
     margin-bottom: 8px;
     font-size: 16px;
     font-weight: bold;
-    color: #333;
+    color: #fff;
 }
 
 /* 状态标签容器 */
 .result-card p {
-    margin: 4px 0; /* 减小段落间距 */
+    margin: 4px 0;
+    /* 减小段落间距 */
     font-size: 14px;
     line-height: 1.5;
-    color: #666;
+    color: #e0e0e0;
 }
 
 /* 状态标签样式 */
 .result-card el-tag {
-    display: block; /* 标签占一整行 */
+    display: block;
+    /* 标签占一整行 */
     text-align: center;
     margin-top: 4px;
+    --el-tag-text-color: #e0e0e0;
 }
 
 /* 下载链接样式 */
@@ -227,20 +228,60 @@ watch(
     color: #409eff;
     display: inline-block;
     text-align: center;
-    margin-top: 6px; /* 减小与其他内容的间距 */
+    margin-top: 6px;
+    /* 减小与其他内容的间距 */
     transition: color 0.2s ease;
+    --el-link-text-color: #409eff;
+    --el-link-hover-text-color: #66b1ff;
 }
 
 .result-card el-link:hover {
     color: #66b1ff;
 }
 
+/* 搜索框样式 */
+.search-box {
+    --el-input-bg-color: #2d2d2d;
+    --el-input-text-color: #e0e0e0;
+    --el-input-border-color: #444;
+    --el-input-icon-color: #e0e0e0;
+    margin-bottom: 16px;
+}
+
+.search-box:hover {
+    --el-input-border-color: #666;
+}
+
+.search-box:focus-within {
+    --el-input-border-color: #409eff;
+}
+
 /* 空状态样式 */
-.results-container + p {
+.results-container+p {
     text-align: center;
     margin-top: 20px;
     font-size: 14px;
     color: #999;
 }
 
+/* 选项卡样式 */
+:deep(.el-tabs__item) {
+    color: #fff;
+    font-size: 14px;
+    padding: 0 16px;
+    transition: color 0.3s ease;
+}
+
+:deep(.el-tabs__item:hover) {
+    color: #409eff;
+}
+
+:deep(.el-tabs__item.is-active) {
+    color: #409eff;
+    font-weight: bold;
+}
+
+:deep(.el-tabs__nav-wrap::after) {
+    background-color: transparent;
+}
 </style>
