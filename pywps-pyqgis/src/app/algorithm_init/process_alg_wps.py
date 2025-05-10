@@ -173,7 +173,14 @@ def process_algorithm_info(alg_info):
 			else:
 				extensions = re.findall(r"\*(.\w+)", file_type_str)
 
+			if '.sdat' in extensions:
+				extensions.append('.zip')
+
 			unique_mime_types = set()  # 集合去重
+
+			if alg.id() == "grass7:r.stream.extract":
+				print()
+				print()
 			# 添加常见的GIS文件格式
 			add_mimetypes()
 			for ext in extensions:

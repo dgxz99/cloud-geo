@@ -20,3 +20,4 @@ def add_mimetypes():
 	mimetypes.add_type('application/x-protobuf', '.mvt')
 	mimetypes.add_type('application/x-shp-xml', '.shp.xml')
 	mimetypes.add_type('application/x-sdat', '.sdat')
+	mimetypes.add_type('application/zip', '.zip')

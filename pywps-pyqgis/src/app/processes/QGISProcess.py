@@ -47,7 +47,8 @@ class QGISProcess(Process):
 			server_host = config.get("Server", "server_host")
 			server_port = config.get("Server", "server_port")
 			output_url = f"http://{server_host}:{server_port}/outputs/"
-		output_file_name = None
+		# 保存输出文件的名称
+		output_file_names = {}
 
 		try:
 			# 构建算法参数
@@ -57,27 +58,28 @@ class QGISProcess(Process):
 			for param in self.inputs:
 				if self.__is_output_param(alg, param.identifier):
 					parameter = next(filter(lambda para: para.name() == param.identifier, alg.parameterDefinitions()), None)
-					output_file_name = f"{self.identifier.replace(':', '-')}-{param.identifier.lower()}-{uuid.uuid4()}"
+					# output_file_name = f"{self.identifier.replace(':', '-')}-{param.identifier.lower()}-{uuid.uuid4()}"
+					output_file_names[param.identifier] = f"{self.identifier.replace(':', '-')}-{param.identifier.lower()}-{uuid.uuid4()}"
 					if isinstance(param, ComplexInput):
 						# 正则表达式匹配文件扩展名，使用 findall 方法查找所有匹配的扩展名
 						extensions = re.findall(r"\*\.(\w+)", parameter.createFileFilter())
 						# 矢量文件以shp文件保存并打包
 						if extensions[0].lower() == 'gpkg':
-							os.mkdir(os.path.join(temp_dir, output_file_name))
-							ret_data = os.path.join(temp_dir, output_file_name, f"{output_file_name}.shp")
+							os.mkdir(os.path.join(temp_dir, output_file_names[param.identifier]))
+							ret_data = os.path.join(temp_dir, output_file_names[param.identifier], f"{output_file_names[param.identifier]}.shp")
 						else:
-							ret_data = os.path.join(output_dir, f'{output_file_name}.{extensions[0]}')
+							ret_data = os.path.join(output_dir, f'{output_file_names[param.identifier]}.{extensions[0]}')
 
 						# sdat文件打包
 						if extensions[0].lower() == 'sdat':
-							os.mkdir(os.path.join(temp_dir, output_file_name))
-							ret_data = os.path.join(temp_dir, output_file_name, f"{output_file_name}.sdat")
+							os.mkdir(os.path.join(temp_dir, output_file_names[param.identifier]))
+							ret_data = os.path.join(temp_dir, output_file_names[param.identifier], f"{output_file_names[param.identifier]}.sdat")
 
 						algorithm_params[param.identifier] = ret_data
 
 					# 针对于算子输出参数为目录的情况
 					elif isinstance(parameter, QgsProcessingParameterFolderDestination):
-						algorithm_params[param.identifier] = os.path.join(temp_dir, output_file_name)
+						algorithm_params[param.identifier] = os.path.join(temp_dir, output_file_names[param.identifier])
 
 				# 若该参数未传值
 				input_data = request.inputs.get(param.identifier)
@@ -105,7 +107,7 @@ class QGISProcess(Process):
 				if ret_data:
 					output_params = OutputHandlerParams(
 						self.identifier, algorithm_params, param_name, ret_data,
-						response, output_dir, output_url, output_file_name, deploy_mode
+						response, output_dir, output_url, output_file_names, deploy_mode
 					)
 					result[param_name] = output_handler_context.handle_output(output_params)
 
@@ -176,6 +178,8 @@ class QGISProcess(Process):
 		if param.max_occurs == 1:
 			if param_files[0].endswith(".zip"):
 				result_files = self.__find_shp_files(param_files[0], temp_dir)
+				if len(result_files) == 0:
+					result_files = self.__find_sdat_files(param_files[0], temp_dir)
 				algorithm_params[param.identifier] = result_files[0]
 			else:
 				algorithm_params[param.identifier] = param_files[0]
@@ -206,3 +210,23 @@ class QGISProcess(Process):
 				if file.endswith('.shp'):
 					shp_files.append(os.path.join(root, file))
 		return shp_files
+
+
+	@staticmethod
+	def __find_sdat_files(zip_file, directory):
+		"""
+		获取压缩包中'.sdat' 扩展名的文件路径
+		Args:
+			zip_file: 压缩包文件路径
+			directory: 解压目录
+		Returns:
+			.sdat扩展名的文件路径列表
+		"""
+		with zipfile.ZipFile(zip_file, 'r') as zip_ref:
+			zip_ref.extractall(directory)
+		sdat_files = []
+		for root, dirs, files in os.walk(directory):
+			for file in files:
+				if file.endswith('.sdat'):
+					sdat_files.append(os.path.join(root, file))
+		return sdat_files

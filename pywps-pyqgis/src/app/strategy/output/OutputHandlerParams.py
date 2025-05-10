@@ -1,5 +1,5 @@
 class OutputHandlerParams:
-    def __init__(self, identifier, algorithm_params, output_name, output_data, response, output_dir, output_url, output_file_name, deploy_mode=None):
+    def __init__(self, identifier, algorithm_params, output_name, output_data, response, output_dir, output_url, output_file_names, deploy_mode=None):
         """
         Args:
             identifier: 算子的唯一标识符
@@ -9,7 +9,7 @@ class OutputHandlerParams:
             response: PyWPS返回的响应
             output_dir: 结果文件保存的路径（文件夹）
             output_url: 结果文件的URL
-            output_file_name: 结果文件名
+            output_file_names: 输出文件的名称的字典
         """
         self.identifier = identifier
         self.algorithm_params = algorithm_params
@@ -18,5 +18,5 @@ class OutputHandlerParams:
         self.response = response
         self.output_dir = output_dir
         self.output_url = output_url
-        self.output_file_name = output_file_name
+        self.output_file_names = output_file_names
         self.deploy_mode = deploy_mode
