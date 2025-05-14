@@ -24,7 +24,7 @@ tar -czvf data.tar.gz -C ../../pywps-pyqgis pywps.cfg requirements.txt uwsgi.ini
 # 构建Docker镜像
 set image_name swsk33/cloud-geo-py
 echo 正在构建镜像...
-docker build -f Dockerfile -t $image_name:$image_version .
+docker build --build-arg ALL_PROXY="http://host.docker.internal:7500" -f Dockerfile -t $image_name:$image_version .
 echo 创建latest tag...
 docker tag $image_name:$image_version $image_name
 

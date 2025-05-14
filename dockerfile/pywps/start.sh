@@ -15,9 +15,9 @@ REDIS_DB=${REDIS_DB:-}
 REDIS_PASSWORD=${REDIS_PASSWORD:-}
 CONSUL_IP=${CONSUL_IP:-}
 CONSUL_PORT=${CONSUL_PORT:-}
-SERVICE_NAME=${SERVICE_NAME:-}
-SERVICE_IP=${SERVICE_IP:-}
-SERVICE_PORT=${SERVICE_PORT:-}
+CONSUL_SERVICE_NAME=${CONSUL_SERVICE_NAME:-}
+CONSUL_SERVICE_IP=${CONSUL_SERVICE_IP:-}
+CONSUL_SERVICE_PORT=${CONSUL_SERVICE_PORT:-}
 FILE_SERVER_URL=${FILE_SERVER_URL:-}
 DEPLOY_MODE=${DEPLOY_MODE:-}
 # uWSGI相关环境变量
@@ -42,9 +42,9 @@ new_pyargv=""
 [ -n "$REDIS_PASSWORD" ] && new_pyargv+=" --redis_password $REDIS_PASSWORD"
 [ -n "$CONSUL_IP" ] && new_pyargv+=" --consul_ip $CONSUL_IP"
 [ -n "$CONSUL_PORT" ] && new_pyargv+=" --consul_port $CONSUL_PORT"
-[ -n "$SERVICE_NAME" ] && new_pyargv+=" --service_name $SERVICE_NAME"
-[ -n "$SERVICE_IP" ] && new_pyargv+=" --service_ip $SERVICE_IP"
-[ -n "$SERVICE_PORT" ] && new_pyargv+=" --service_port $SERVICE_PORT"
+[ -n "$CONSUL_SERVICE_NAME" ] && new_pyargv+=" --consul_service_name $CONSUL_SERVICE_NAME"
+[ -n "$CONSUL_SERVICE_IP" ] && new_pyargv+=" --consul_service_ip $CONSUL_SERVICE_IP"
+[ -n "$CONSUL_SERVICE_PORT" ] && new_pyargv+=" --consul_service_port $CONSUL_SERVICE_PORT"
 [ -n "$FILE_SERVER_URL" ] && new_pyargv+=" --file_server_url $FILE_SERVER_URL"
 [ -n "$DEPLOY_MODE" ] && new_pyargv+=" --deploy_mode $DEPLOY_MODE"
 
