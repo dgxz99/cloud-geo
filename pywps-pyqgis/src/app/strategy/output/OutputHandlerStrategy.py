@@ -43,7 +43,7 @@ class OutputHandlerStrategy(ABC):
 		filename = os.path.basename(file_path)
 		upload_url = url + f'/upload-force-name/{filename.split(".")[0]}'
 		with open(file_path, 'rb') as f:
-			response = requests.put(upload_url, files={'file': f})
+			response = requests.post(upload_url, files={'file': f})
 		response.raise_for_status()
 		os.remove(file_path)  # 删除本地文件
 		return filename

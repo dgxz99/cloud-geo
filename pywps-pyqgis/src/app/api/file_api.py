@@ -22,8 +22,8 @@ file_blue = flask.Blueprint('file', __name__)
 
 
 # 获取上传和输出的文件
-@file_blue.route('/inputs/<filename>')
-@file_blue.route('/outputs/<path:filename>', methods=['GET'])
+@file_blue.route('/api/file/retrieve/inputs/<filename>')
+@file_blue.route('/api/file/retrieve/outputs/<path:filename>', methods=['GET'])
 def outputfile(filename):
 	if 'inputs' in flask.request.path:
 		file_dir = "inputs"
@@ -52,7 +52,7 @@ def outputfile(filename):
 
 
 # 上传文件接口
-@file_blue.route('/upload', methods=['POST'])
+@file_blue.route('/api/file/upload', methods=['POST'])
 def upload_file():
 	if deploy_mode == 'single':
 		if 'file' not in flask.request.files:

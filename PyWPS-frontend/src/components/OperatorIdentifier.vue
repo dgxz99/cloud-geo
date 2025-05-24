@@ -25,7 +25,7 @@
                 <el-upload v-if="input.DataType === 'ComplexData'"
                     :ref="(ref) => registerUploadRef('upload-' + input.Identifier, ref)"
                     :data="{ identifier: input.Identifier }" :accept="getSupportedFormats(input.ComplexData)"
-                    class="uniform-width" action="/api/upload"
+                    class="uniform-width" action="/api/file/upload"
                     :on-success="(response, file, fileList) => handleUploadSuccess(response, file, input.Identifier)"
                     :on-error="handleUploadError">
                     <el-button class="upload-button uniform-width" type="primary">Upload File</el-button>
@@ -226,7 +226,7 @@ function handleUploadSuccess(response, file, identifier) {
         return;
     }
 
-    const fileUrl = `http://10.191.243.20:5555/inputs/${filenames[0]}`;
+    const fileUrl = `http://127.0.0.1:5000/api/file/retrieve/inputs/${filenames[0]}`;
     inputValues.value[identifier] = inputValues.value[identifier] || [];
     const isDuplicate = inputValues.value[identifier].some(item => item.url === fileUrl);
     if (!isDuplicate) {

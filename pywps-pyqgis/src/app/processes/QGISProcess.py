@@ -46,7 +46,7 @@ class QGISProcess(Process):
 		else:  # 其他情况都为single，单体部署
 			server_host = config.get("Server", "server_host")
 			server_port = config.get("Server", "server_port")
-			output_url = f"http://{server_host}:{server_port}/outputs/"
+			output_url = f"http://{server_host}:{server_port}/api/file/retrieve/outputs/"
 		# 保存输出文件的名称
 		output_file_names = {}
 

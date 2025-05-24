@@ -23,12 +23,12 @@ public class FileAPI {
 	@Autowired
 	private FileService fileService;
 
-	@PutMapping("/upload")
+	@PostMapping("/upload")
 	public Result<UploadFile> upload(@RequestParam MultipartFile file) {
 		return fileService.uploadFile(file);
 	}
 
-	@PutMapping("/upload-force-name/{name}")
+	@PostMapping("/upload-force-name/{name}")
 	public Result<UploadFile> uploadForceName(@RequestParam MultipartFile file, @PathVariable String name) {
 		return fileService.uploadFileForceName(file, name);
 	}
