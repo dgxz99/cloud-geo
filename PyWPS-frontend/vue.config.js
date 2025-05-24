@@ -38,7 +38,7 @@ module.exports = defineConfig({
     },
     proxy: {
       '/api': {
-        target: 'http://dev.swsk33-mcs.top:9002/', // 确保目标 URL 是正确的，并且以斜杠 '/' 结尾
+        target: 'http://10.191.2.38:8000/api/', // 确保目标 URL 是正确的，并且以斜杠 '/' 结尾
         changeOrigin: true, // 支持虚拟托管的站点
         pathRewrite: { '^/api': '' }, // 重写路径，移除请求中的 '/api' 部分
       },

@@ -215,16 +215,31 @@ function getSupportedFormats(complexData) {
 }
 
 function handleUploadSuccess(response, file, identifier) {
+
     ElMessage({
         message: 'Files uploaded successfully！',
         type: 'success',
     });
 
-    const filenames = response.data?.filenames || response.filenames;
-    if (!filenames || filenames.length === 0) {
-        console.error("文件上传成功，但未找到 filenames", response);
-        return;
+    console.log("handleUploadSuccess:", response);
+
+
+    let filenames = response.data?.filenames;
+
+    if (!Array.isArray(filenames) || filenames.length === 0) {
+        const filename = response.data?.name || '';
+        const format = response.data?.format || '';
+        const combined = filename && format ? `${filename}.${format}` : filename || format;
+        filenames = [combined];
     }
+
+    filenames = Array.isArray(filenames) ? filenames : [filenames];
+
+    console.log("filenames:", filenames);
+    // if (!filenames || filenames.length === 0) {
+    //     console.error("文件上传成功，但未找到 filenames", response);
+    //     return;
+    // }
 
     const fileUrl = `http://127.0.0.1:5000/api/file/retrieve/inputs/${filenames[0]}`;
     inputValues.value[identifier] = inputValues.value[identifier] || [];
