@@ -35,3 +35,6 @@ io:
           access-key: "${MINIO_ACCESS_KEY:admin}"
           secret-key: "${MINIO_SECRET_KEY:12345678}"
           bucket-name: "${MINIO_BUCKET:wps-file}"
+
+file-service:
+  url: "http://${FILE_SERVICE_IP:127.0.0.1}:${FILE_SERVICE_PORT:8000}/api/file"

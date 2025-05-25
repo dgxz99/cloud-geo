@@ -96,7 +96,7 @@ const actions = {
     async fetchOperators({ commit }) {
         commit('setLoading', true);
         try {
-            const response = await fetch('/api/processes?service=WPS')
+            const response = await fetch('/processes?service=WPS')
 
             // 校验 HTTP 状态码
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)

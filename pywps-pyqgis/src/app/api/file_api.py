@@ -57,6 +57,11 @@ def upload_file():
 	if deploy_mode == 'single':
 		if 'file' not in flask.request.files:
 			return JsonResponse.error(data={"message": "No file part"})
+
+		server_host = config.get("Server", "server_host")
+		server_port = config.get("Server", "server_port")
+		input_url = f"http://{server_host}:{server_port}/api/file/retrieve/inputs"
+
 		# 获取所有上传的文件
 		files = flask.request.files.getlist('file')
 		if len(files) == 0:
@@ -71,7 +76,8 @@ def upload_file():
 				filename = f"{uuid.uuid4().hex}_{file.filename}"
 				file_path = os.path.join(UPLOAD_FOLDER, filename)
 				file.save(file_path)
-				saved_files.append(filename)
+				file_url = f"{input_url}/{filename}"
+				saved_files.append({"name": filename, "href": file_url})
 		return JsonResponse.success(data={"message": "Files uploaded successfully", "filenames": saved_files})
 	else:
 		return JsonResponse.error(data={"message": "Resource not found."})

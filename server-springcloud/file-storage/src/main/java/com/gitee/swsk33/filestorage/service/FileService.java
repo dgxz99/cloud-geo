@@ -7,6 +7,8 @@ import io.github.swsk33.fileliftcore.model.file.UploadFile;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Map;
+
 /**
  * 分布式文件系统的操作服务
  */
@@ -19,7 +21,7 @@ public interface FileService {
 	 * @param file 上传的文件对象
 	 * @return 结果对象，包含已上传文件的信息
 	 */
-	Result<UploadFile> uploadFile(MultipartFile file);
+	Result<Map<String, Object>> uploadFile(MultipartFile file);
 
 	/**
 	 * 上传文件并指定文件名

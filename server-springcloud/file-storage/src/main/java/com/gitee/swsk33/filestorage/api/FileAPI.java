@@ -13,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Map;
+
 /**
  * 文件服务API
  */
@@ -24,7 +26,7 @@ public class FileAPI {
 	private FileService fileService;
 
 	@PostMapping("/upload")
-	public Result<UploadFile> upload(@RequestParam MultipartFile file) {
+	public Result<Map<String, Object>> upload(@RequestParam MultipartFile file) {
 		return fileService.uploadFile(file);
 	}
 

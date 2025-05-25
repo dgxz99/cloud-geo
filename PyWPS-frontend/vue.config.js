@@ -38,9 +38,16 @@ module.exports = defineConfig({
     },
     proxy: {
       '/api': {
-        target: 'http://10.191.2.38:8000/api/', // 确保目标 URL 是正确的，并且以斜杠 '/' 结尾
+        target: 'http://127.0.0.1:8000/', // 确保目标 URL 是正确的，并且以斜杠 '/' 结尾
         changeOrigin: true, // 支持虚拟托管的站点
-        pathRewrite: { '^/api': '' }, // 重写路径，移除请求中的 '/api' 部分
+      },
+      '/processes': {
+        target: 'http://127.0.0.1:5000/', // 确保目标 URL 是正确的，并且以斜杠 '/' 结尾
+        changeOrigin: true, // 支持虚拟托管的站点
+      },
+      '/jobs': {
+        target: 'http://127.0.0.1:5000/', // 确保目标 URL 是正确的，并且以斜杠 '/' 结尾
+        changeOrigin: true, // 支持虚拟托管的站点
       },
     },
   }

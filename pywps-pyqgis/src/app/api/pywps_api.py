@@ -39,43 +39,10 @@ executor = ThreadPoolExecutor()
 pywps_blue = flask.Blueprint('pywps', __name__)
 
 
-def _process_complex_url(url, deploy_mode='single'):
-	"""
-	处理复杂的URL输入
-	Args:
-		url: 复杂的URL字符串
-		deploy_mode: 部署模式
-	Returns: 处理后的URL字符串
-	"""
-	config = get_config()
-	filename = url.split('/')[-1]
-	if deploy_mode == 'distributed':
-		file_url = config.get("file", "file_server_url")
-		url = f"{file_url}/retrieve/{filename}"
-	else:
-		server_host = config.get("Server", "server_host")
-		server_port = config.get("Server", "server_port")
-		url = f"http://{server_host}:{server_port}/api/file/retrieve/inputs/{filename}"
-	return url
-
-
 @pywps_blue.route('/jobs', methods=['POST'])
 def execute():
 	flask_request = flask.request
 	data = json.loads(flask_request.data)  # 请求体
-	for input_key, input_value in data['inputs'].items():
-		if isinstance(input_value, dict):
-			input_data_url = input_value.get('href', None)
-			if input_data_url:
-				# 处理复杂的URL输入
-				input_value['href'] = _process_complex_url(input_data_url, deploy_mode)
-		elif isinstance(input_value, list):
-			for i, item in enumerate(input_value):
-				if isinstance(item, dict):
-					input_data_url = item.get('href', None)
-					if input_data_url:
-						# 处理列表中的复杂URL输入
-						input_value[i]['href'] = _process_complex_url(input_data_url, deploy_mode)
 	mode = data.get("mode", None)
 	job_id = data.get("job_id", None)
 	if job_id is None:

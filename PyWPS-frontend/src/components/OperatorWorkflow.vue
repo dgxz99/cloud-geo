@@ -247,7 +247,7 @@ const hasFormatIntersection = (arr1, arr2) => {
 // 重构的metadata获取方法
 const fetchOperatorMetadata = async (operatorIdentifier) => {
     try {
-        const response = await axios.get(`/api/processes/${operatorIdentifier}`);
+        const response = await axios.get(`/processes/${operatorIdentifier}`);
         if (response.data.success) {
             const data = response.data.data;
 

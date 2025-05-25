@@ -185,7 +185,7 @@ watch(
     async ([workflowId, operatorId]) => {
         console.log('开始加载节点配置', { workflowId, operatorId })
         try {
-            const apiUrl = `/api/processes/${operatorId}`
+            const apiUrl = `/processes/${operatorId}`
             console.log('请求地址:', apiUrl)
             const response = await axios.get(apiUrl)
             console.log('响应数据结构:', response.data)
@@ -290,7 +290,7 @@ async function executeOperator() {
     store.commit('operator/ADD_TASK', initialTask);
 
     try {
-        const response = await axios.post('/api/jobs', requestData);
+        const response = await axios.post('/jobs', requestData);
         store.commit('operator/UPDATE_TASK_STATUS', {
             taskId,
             status: response.data.status || 'succeeded',

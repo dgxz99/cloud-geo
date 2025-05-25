@@ -35,5 +35,5 @@ spring:
           uri: "lb://py-wps"
           predicates:
             - "Path=/api/**"
-          filters:
-            - RewritePath=/api/(?<remaining>.*), /${remaining}
+            - "Path=/processes/**"
+            - "Path=/jobs/**"

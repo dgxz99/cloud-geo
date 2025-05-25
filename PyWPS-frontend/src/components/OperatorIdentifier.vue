@@ -164,7 +164,7 @@ watch(
     async (newIdentifier) => {
         if (newIdentifier) {
             try {
-                const response = await axios.get(`/api/processes/${newIdentifier}`);
+                const response = await axios.get(`/processes/${newIdentifier}`);
                 operator.value = response.data;
                 initializeParameterinValues();
                 initializeParameteroutValues();
@@ -223,25 +223,16 @@ function handleUploadSuccess(response, file, identifier) {
 
     console.log("handleUploadSuccess:", response);
 
+    let href = response.data?.href || '';
 
-    let filenames = response.data?.filenames;
-
-    if (!Array.isArray(filenames) || filenames.length === 0) {
-        const filename = response.data?.name || '';
-        const format = response.data?.format || '';
-        const combined = filename && format ? `${filename}.${format}` : filename || format;
-        filenames = [combined];
+    if (!href) {
+        let filenames = response.data?.filenames;
+        href = filenames[0].href;
     }
 
-    filenames = Array.isArray(filenames) ? filenames : [filenames];
+    console.log("href:", href);
 
-    console.log("filenames:", filenames);
-    // if (!filenames || filenames.length === 0) {
-    //     console.error("文件上传成功，但未找到 filenames", response);
-    //     return;
-    // }
-
-    const fileUrl = `http://127.0.0.1:5000/api/file/retrieve/inputs/${filenames[0]}`;
+    const fileUrl = href;
     inputValues.value[identifier] = inputValues.value[identifier] || [];
     const isDuplicate = inputValues.value[identifier].some(item => item.url === fileUrl);
     if (!isDuplicate) {
@@ -313,7 +304,7 @@ async function executeOperator() {
     store.commit('operator/ADD_TASK', initialTask);
 
     try {
-        const response = await axios.post('/api/jobs', requestData);
+        const response = await axios.post('/jobs', requestData);
         store.commit('operator/UPDATE_TASK_STATUS', {
             taskId,
             status: response.data.status || 'succeeded',
