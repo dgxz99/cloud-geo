@@ -34,6 +34,4 @@ spring:
         - id: "py-wps"
           uri: "lb://py-wps"
           predicates:
-            - "Path=/api/**"
-            - "Path=/processes/**"
-            - "Path=/jobs/**"
+            - Path=/processes,/processes/**,/jobs,/jobs/**,/api/**
