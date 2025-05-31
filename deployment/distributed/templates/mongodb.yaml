@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "cloud-geo.fullname" . }}-mongodb
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "cloud-geo.name" . }}-mongodb
+  template:
+    metadata:
+      labels:
+        app: {{ include "cloud-geo.name" . }}-mongodb
+    spec:
+      containers:
+      - name: mongodb
+        image: {{ .Values.mongodb.image }}
+        imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+        ports:
+        - containerPort: {{ .Values.mongodb.port }}
+        env:
+        - name: LANG
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "cloud-geo.fullname" . }}-config
+              key: LANG
+        - name: MONGO_INITDB_ROOT_USERNAME
+          value: {{ .Values.mongodb.rootUsername | quote }}
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "cloud-geo.fullname" . }}-secret
+              key: mongo-root-password
+        volumeMounts:
+        - name: mongodb-data
+          mountPath: /data/db
+      volumes:
+      - name: mongodb-data
+        persistentVolumeClaim:
+          claimName: {{ include "cloud-geo.fullname" . }}-mongodb-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "cloud-geo.fullname" . }}-mongodb
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    app: {{ include "cloud-geo.name" . }}-mongodb
+  ports:
+  - port: {{ .Values.mongodb.port }}
+    targetPort: {{ .Values.mongodb.port }}
+  type: {{ .Values.service.type }}

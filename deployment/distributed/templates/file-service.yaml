@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "cloud-geo.fullname" . }}-file
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "cloud-geo.name" . }}-file
+  template:
+    metadata:
+      labels:
+        app: {{ include "cloud-geo.name" . }}-file
+    spec:
+      containers:
+      - name: file-service
+        image: {{ .Values.fileService.image }}
+        imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+        ports:
+        - containerPort: {{ .Values.fileService.port }}
+        env:
+        - name: CONSUL_HOST
+          value: {{ include "cloud-geo.fullname" . }}-consul
+        - name: MINIO_HOST
+          value: {{ include "cloud-geo.fullname" . }}-minio
+        - name: MINIO_ACCESS_KEY
+          value: {{ .Values.fileService.minioAccessKey | quote }}
+        - name: MINIO_SECRET_KEY
+          value: {{ .Values.fileService.minioSecretKey | quote }}
+        - name: FILE_SERVICE_IP
+          value: {{ include "cloud-geo.fullname" . }}-gateway
+        - name: FILE_SERVICE_PORT
+          value: {{ .Values.gateway.port | quote }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "cloud-geo.fullname" . }}-file
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    app: {{ include "cloud-geo.name" . }}-file
+  ports:
+  - port: {{ .Values.fileService.port }}
+    targetPort: {{ .Values.fileService.port }}
+  type: {{ .Values.service.type }}

@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "cloud-geo.fullname" . }}-nginx
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "cloud-geo.name" . }}-nginx
+  template:
+    metadata:
+      labels:
+        app: {{ include "cloud-geo.name" . }}-nginx
+    spec:
+      containers:
+      - name: nginx
+        image: {{ .Values.nginx.image }}
+        imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+        ports:
+        - containerPort: {{ .Values.nginx.port }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "cloud-geo.fullname" . }}-nginx
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    app: {{ include "cloud-geo.name" . }}-nginx
+  ports:
+  - port: {{ .Values.nginx.port }}
+    targetPort: {{ .Values.nginx.port }}
+  type: LoadBalancer

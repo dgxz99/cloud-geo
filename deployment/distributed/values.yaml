@@ -1,0 +1,65 @@
+global:
+  imagePullPolicy: Never  # 使用本地镜像
+
+# 数据库配置
+mongodb:
+  image: mongo:latest
+  port: 27017
+  rootUsername: cloudgeo
+  rootPassword: cloudgeo123
+  storage: 1Gi
+
+redis:
+  image: redis:latest
+  port: 6379
+  password: cloudgeo123
+  storage: 1Gi
+
+# 对象存储配置
+minio:
+  image: minio/minio:latest
+  port: 9000
+  consolePort: 9001
+  rootUser: cloudgeo
+  rootPassword: cloudgeo123
+  storage: 5Gi
+
+# 服务发现配置
+consul:
+  image: hashicorp/consul:latest
+  ports:
+    server: 8300
+    serf_lan: 8301
+    serf_wan: 8302
+    http: 8500
+    dns: 8600
+  storage: 1Gi
+
+# 文件服务配置
+fileService:
+  image: swsk33/cloud-geo-file:latest
+  port: 8800
+  minioAccessKey: cloudgeo
+  minioSecretKey: cloudgeo123
+
+# 网关服务配置
+gateway:
+  image: swsk33/cloud-geo-gateway:latest
+  port: 8000
+
+# Python服务配置
+pyService:
+  image: swsk33/cloud-geo-py:latest
+  port: 5000
+  replicas: 3
+  storage: 1Gi
+  deployMode: distributed
+
+# Nginx配置
+nginx:
+  image: swsk33/cloud-geo-nginx:distributed-1.0.0
+  port: 80
+
+# 服务类型配置
+service:
+  type: ClusterIP

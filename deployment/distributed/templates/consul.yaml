@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "cloud-geo.fullname" . }}-consul
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "cloud-geo.name" . }}-consul
+  template:
+    metadata:
+      labels:
+        app: {{ include "cloud-geo.name" . }}-consul
+    spec:
+      containers:
+      - name: consul
+        image: {{ .Values.consul.image }}
+        imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+        ports:
+        - containerPort: {{ .Values.consul.ports.server }}
+        - containerPort: {{ .Values.consul.ports.serf_lan }}
+        - containerPort: {{ .Values.consul.ports.serf_wan }}
+        - containerPort: {{ .Values.consul.ports.http }}
+        - containerPort: {{ .Values.consul.ports.dns }}
+        command: ["consul", "agent", "-server", "-ui", "-node=server-1", "-bootstrap-expect=1", "-client=0.0.0.0", "-bind=0.0.0.0", "-data-dir=/consul/data"]
+        workingDir: /consul/data
+        volumeMounts:
+        - name: consul-data
+          mountPath: /consul/data
+      volumes:
+      - name: consul-data
+        persistentVolumeClaim:
+          claimName: {{ include "cloud-geo.fullname" . }}-consul-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "cloud-geo.fullname" . }}-consul
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    app: {{ include "cloud-geo.name" . }}-consul
+  ports:
+  - name: server
+    port: {{ .Values.consul.ports.server }}
+    targetPort: {{ .Values.consul.ports.server }}
+  - name: serf-lan
+    port: {{ .Values.consul.ports.serf_lan }}
+    targetPort: {{ .Values.consul.ports.serf_lan }}
+  - name: serf-wan
+    port: {{ .Values.consul.ports.serf_wan }}
+    targetPort: {{ .Values.consul.ports.serf_wan }}
+  - name: http
+    port: {{ .Values.consul.ports.http }}
+    targetPort: {{ .Values.consul.ports.http }}
+  - name: dns
+    port: {{ .Values.consul.ports.dns }}
+    targetPort: {{ .Values.consul.ports.dns }}
+  type: {{ .Values.service.type }}

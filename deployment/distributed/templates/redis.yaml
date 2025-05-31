@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "cloud-geo.fullname" . }}-redis
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "cloud-geo.name" . }}-redis
+  template:
+    metadata:
+      labels:
+        app: {{ include "cloud-geo.name" . }}-redis
+    spec:
+      containers:
+      - name: redis
+        image: {{ .Values.redis.image }}
+        imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+        ports:
+        - containerPort: {{ .Values.redis.port }}
+        env:
+        - name: LANG
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "cloud-geo.fullname" . }}-config
+              key: LANG
+        command: ["redis-server", "--requirepass", "$(REDIS_PASSWORD)"]
+        env:
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "cloud-geo.fullname" . }}-secret
+              key: redis-password
+        volumeMounts:
+        - name: redis-data
+          mountPath: /data
+      volumes:
+      - name: redis-data
+        persistentVolumeClaim:
+          claimName: {{ include "cloud-geo.fullname" . }}-redis-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "cloud-geo.fullname" . }}-redis
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    app: {{ include "cloud-geo.name" . }}-redis
+  ports:
+  - port: {{ .Values.redis.port }}
+    targetPort: {{ .Values.redis.port }}
+  type: {{ .Values.service.type }}

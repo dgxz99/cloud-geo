@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "cloud-geo.fullname" . }}-gateway
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "cloud-geo.name" . }}-gateway
+  template:
+    metadata:
+      labels:
+        app: {{ include "cloud-geo.name" . }}-gateway
+    spec:
+      containers:
+      - name: gateway
+        image: {{ .Values.gateway.image }}
+        imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+        ports:
+        - containerPort: {{ .Values.gateway.port }}
+        env:
+        - name: CONSUL_HOST
+          value: {{ include "cloud-geo.fullname" . }}-consul
+        - name: CONSUL_PORT
+          value: {{ .Values.consul.ports.http | quote }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "cloud-geo.fullname" . }}-gateway
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    app: {{ include "cloud-geo.name" . }}-gateway
+  ports:
+  - port: {{ .Values.gateway.port }}
+    targetPort: {{ .Values.gateway.port }}
+  type: {{ .Values.service.type }}

@@ -1,0 +1,8 @@
+{{- if ne .Release.Namespace "default" }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Release.Namespace }}
+  labels:
+    {{- include "cloud-geo.labels" . | nindent 4 }}
+{{- end }}
